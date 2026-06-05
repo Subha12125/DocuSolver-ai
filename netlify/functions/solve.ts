@@ -18,6 +18,45 @@ function getLanguageInstruction(language: unknown) {
   return SUPPORTED_LANGUAGES[normalized] ?? SUPPORTED_LANGUAGES.english;
 }
 
+function checkResponseSafety(response: any): void {
+  const candidate = response.candidates?.[0];
+  if (candidate) {
+    const finishReason = candidate.finishReason;
+    if (finishReason === "SAFETY") {
+      throw new Error("SAFETY_BLOCK: The document was blocked by safety filters. Please ensure the PDF contains appropriate academic content.");
+    }
+    if (finishReason === "RECITATION") {
+      throw new Error("RECITATION_BLOCK: The response was blocked due to recitation/copyright checks.");
+    }
+  }
+  
+  const promptFeedback = response.promptFeedback;
+  if (promptFeedback?.blockReason) {
+    throw new Error(`SAFETY_BLOCK: Prompt blocked due to: ${promptFeedback.blockReason}`);
+  }
+}
+
+function trySalvageJSON(text: string): any {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    let trimmed = text.trim();
+    if (!trimmed.startsWith("[")) {
+      throw err;
+    }
+    let idx = trimmed.lastIndexOf("}");
+    while (idx !== -1) {
+      const candidate = trimmed.substring(0, idx + 1) + "]";
+      try {
+        return JSON.parse(candidate);
+      } catch {
+        idx = trimmed.lastIndexOf("}", idx - 1);
+      }
+    }
+    throw err;
+  }
+}
+
 const handler: Handler = async (event: HandlerEvent) => {
   // CORS headers
   const headers = {
@@ -106,7 +145,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       - "image": optional Base64 image data URI.
     `;
 
-    const response = await ai.models.generateContent({
+    const geminiCall = ai.models.generateContent({
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
       contents: [
         { inlineData: { mimeType: "application/pdf", data: pdfBase64 } },
@@ -131,41 +170,20 @@ const handler: Handler = async (event: HandlerEvent) => {
       },
     });
 
-    // Check for empty or safety-blocked responses
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("GATEWAY_TIMEOUT: Netlify function execution limit reached. Try running DocuSolver AI locally for longer processing times.")), 8200)
+    );
+
+    const response = await Promise.race([geminiCall, timeoutPromise]);
+
     if (!response.text) {
-      const candidates = (response as any).candidates;
-      const feedback = (response as any).promptFeedback;
-      if (feedback?.blockReason) {
-        return { statusCode: 422, headers, body: JSON.stringify({ error: `The AI model blocked the request due to: ${feedback.blockReason}. Please try a different document.` }) };
-      }
-      if (candidates?.[0]?.finishReason && candidates[0].finishReason !== 'STOP') {
-        return { statusCode: 422, headers, body: JSON.stringify({ error: `The AI model stopped processing due to: ${candidates[0].finishReason}.` }) };
-      }
-      return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an empty response. This is usually temporary — please try again." }) };
+      checkResponseSafety(response);
+      throw new Error("Empty response from Gemini model.");
     }
 
-    // Safe JSON parsing with partial salvage
-    let parsed: any;
-    try {
-      parsed = JSON.parse(response.text);
-    } catch {
-      const rawText = response.text || "";
-      const lastBracket = rawText.lastIndexOf("}");
-      if (lastBracket > 0) {
-        const salvaged = rawText.substring(0, lastBracket + 1) + "]";
-        try {
-          parsed = JSON.parse(salvaged);
-          console.warn("Netlify: Salvaged truncated JSON response from Gemini.");
-        } catch {
-          return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned a malformed response. Try a smaller PDF or try again." }) };
-        }
-      } else {
-        return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an unparseable response. Please try again." }) };
-      }
-    }
-
+    const parsed = trySalvageJSON(response.text);
     if (!Array.isArray(parsed)) {
-      return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an unexpected response format. Please try again." }) };
+      throw new Error("Invalid response format from Gemini model.");
     }
 
     const cleaned = parsed
@@ -177,23 +195,19 @@ const handler: Handler = async (event: HandlerEvent) => {
         image: String(item.image || "").trim(),
       }));
 
-    if (cleaned.length === 0) {
-      return { statusCode: 422, headers, body: JSON.stringify({ error: "The AI could not find any questions in this document. Please ensure the PDF contains readable question text." }) };
-    }
-
     return { statusCode: 200, headers, body: JSON.stringify({ result: cleaned }) };
   } catch (e: any) {
     console.error("Netlify Function Error:", e);
-    const message = e.message || "An error occurred.";
-
-    if (message.includes("API key") || message.includes("403") || message.includes("401")) {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: "Invalid API key. Please check your Gemini API key." }) };
+    const msg = e.message || "An error occurred.";
+    let statusCode = 500;
+    if (msg.includes("GATEWAY_TIMEOUT")) {
+      statusCode = 504;
+    } else if (msg.includes("SAFETY_BLOCK")) {
+      statusCode = 422;
+    } else if (msg.includes("API Key") || msg.includes("403") || msg.includes("401")) {
+      statusCode = 401;
     }
-    if (message.includes("429") || message.includes("Resource has been exhausted") || message.includes("quota")) {
-      return { statusCode: 429, headers, body: JSON.stringify({ error: "API rate limit exceeded. Please wait a moment and try again." }) };
-    }
-
-    return { statusCode: 500, headers, body: JSON.stringify({ error: message }) };
+    return { statusCode, headers, body: JSON.stringify({ error: msg }) };
   }
 };
 

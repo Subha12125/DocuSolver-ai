@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import FileUpload from './components/FileUpload';
 import ProcessingIndicator from './components/ProcessingIndicator';
@@ -34,7 +34,7 @@ const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [isCheckingConfig, setIsCheckingConfig] = useState(true);
-  const lastFileRef = useRef<File | null>(null);
+  const lastFileRef = React.useRef<File | null>(null);
 
   const checkConfig = async () => {
     try {
@@ -88,6 +88,7 @@ const App: React.FC = () => {
 
   const handleFileSelect = async (file: File) => {
     try {
+      lastFileRef.current = file;
       if (!apiKey) {
         const msg = "Please add your Gemini API key before uploading a PDF.";
         setProcessingState({
@@ -103,9 +104,6 @@ const App: React.FC = () => {
         status: ProcessingStatus.READING_PDF,
         message: 'Reading document structure...'
       });
-
-      // Store file reference for retry
-      lastFileRef.current = file;
 
       // Convert file to base64 for Gemini
       const base64Data = await fileToBase64(file);
@@ -184,18 +182,10 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
-    setQaPairs([]);
     lastFileRef.current = null;
+    setQaPairs([]);
     setIsCheckingConfig(true);
     checkConfig();
-  };
-
-  const handleRetry = () => {
-    if (lastFileRef.current) {
-      handleFileSelect(lastFileRef.current);
-    } else {
-      handleReset();
-    }
   };
 
   if (isCheckingConfig) {
@@ -861,18 +851,21 @@ const App: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={handleRetry}
-                  className="px-8 py-3.5 bg-[#6D5DFC] text-white text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-[#6D5DFC]/90 transition-all cursor-pointer flex items-center gap-2"
+                  onClick={() => handleFileSelect(lastFileRef.current!)}
+                  className="px-8 py-3.5 bg-[#6D5DFC] text-white text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-[#6D5DFC]/90 transition-all cursor-pointer"
                 >
-                  <i className="ri-refresh-line text-base leading-none"></i>
                   Try Again
                 </motion.button>
               )}
-               <motion.button
+              <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleReset}
-                className="px-8 py-3.5 bg-zinc-800/60 text-white border border-zinc-700/50 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-zinc-800 transition-all cursor-pointer"
+                className={`px-8 py-3.5 font-semibold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                  lastFileRef.current 
+                    ? "bg-zinc-800/40 hover:bg-zinc-800 text-white border border-zinc-700/50" 
+                    : "bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 text-white"
+                }`}
               >
                 Reset Engine
               </motion.button>
