@@ -228,7 +228,7 @@ const App: React.FC = () => {
                 </h1>
                 
                 <p className="text-base sm:text-lg text-[#B8C0CC] font-normal leading-relaxed max-w-xl">
-                  Upload quizzes, assignments, worksheets, or scanned documents and receive accurate, structured, AI-generated answers in seconds.
+                  Upload your academic quizzes, worksheets, or scanned assignments to instantly generate highly accurate, step-by-step answers and structured study keys with detailed, interactive explanations in seconds.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
