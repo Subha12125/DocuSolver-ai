@@ -207,238 +207,201 @@ const App: React.FC = () => {
         {processingState.status === ProcessingStatus.IDLE && (
           <div className="space-y-16">
             
-            {/* Elegant Hero Text */}
-            <motion.div 
-              initial={{ y: 25, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center space-y-4 max-w-2xl mx-auto"
-            >
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-extrabold tracking-widest text-indigo-400 uppercase shadow-sm">
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                </span>
-                <span>Powered by Gemini 2.5 Flash</span>
-              </div>
+            {/* Redesigned Premium Workspace Layout */}
+            <div className="grid lg:grid-cols-12 gap-8 items-stretch pt-4">
               
-              <h1 className="text-4xl sm:text-5.5xl font-extrabold text-zinc-100 tracking-tight leading-none font-display">
-                Convert School Sheets to <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-indigo-500 to-violet-400 animate-pulse">
-                  Polished Answer Keys
-                </span>
-              </h1>
-              <p className="text-base sm:text-lg text-zinc-400 leading-relaxed font-sans max-w-xl mx-auto">
-                No more manual typing or guessing. Drop exams, homework worksheets, or raw question sheets to extract, layout, and solve immediately.
-              </p>
-            </motion.div>
-
-            <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="space-y-6"
-              >
-                {!apiKey ? (
-                  <form
-                    onSubmit={handleApiKeySubmit}
-                    className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden animate-neon-glow animate-light-sweep"
-                  >
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
-                        <i className="ri-key-2-line text-lg leading-none"></i>
-                      </div>
-                      <div>
-                        <label htmlFor="gemini-api-key" className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Gemini API Key Required</label>
-                        <p className="text-xs text-zinc-500">Add your key before PDF processing starts</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        id="gemini-api-key"
-                        type="password"
-                        value={apiKeyInput}
-                        onChange={(event) => setApiKeyInput(event.target.value)}
-                        placeholder="Paste your Gemini API key"
-                        autoComplete="off"
-                        className="min-w-0 flex-1 bg-zinc-950 text-zinc-100 placeholder-zinc-600 text-sm px-4 py-3.5 rounded-2xl border border-zinc-800/80 focus:outline-none focus:border-indigo-600 transition-colors"
-                      />
-                      <button
-                        type="submit"
-                        className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-widest px-5 py-3.5 rounded-2xl transition-colors shadow-lg shadow-indigo-600/10"
-                      >
-                        <i className="ri-shield-check-line text-base"></i>
-                        Save Key
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                {/* Advanced Parameters Controller Card */}
-                <motion.div 
-                  whileHover={{ y: -1 }}
-                  className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden"
-                >
-                  <div className="flex justify-between items-center mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
-                        <i className="ri-equalizer-line text-lg leading-none"></i>
-                      </div>
-                      <div>
-                        <label htmlFor="word-limit" className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Target Explanation Detail</label>
-                        <p className="text-xs text-zinc-500">Instruct Gemini on requested resolution length</p>
-                      </div>
-                    </div>
-                    <motion.span 
-                      key={wordLimit}
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="bg-indigo-600 text-white text-xs font-extrabold px-3.5 py-1.5 rounded-full shadow-md shadow-indigo-600/10 font-mono"
-                    >
-                      ~{wordLimit} words
-                    </motion.span>
+              {/* Left Side: Product Copy + Workspace Controls */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-8">
+                
+                {/* Brand Copy Block */}
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-extrabold tracking-widest text-indigo-400 uppercase shadow-sm w-fit">
+                    <span className="flex h-1.5 w-1.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+                    </span>
+                    <span>DocuSolver AI 2.0</span>
                   </div>
                   
-                  <input
-                    id="word-limit"
-                    type="range"
-                    min="50"
-                    max="500"
-                    step="10"
-                    value={wordLimit}
-                    onChange={(e) => setWordLimit(Number(e.target.value))}
-                    className="w-full h-1.5 bg-zinc-950 rounded-lg appearance-none cursor-pointer accent-indigo-600 hover:accent-indigo-700 transition-all"
-                  />
+                  <h1 className="text-4xl font-extrabold text-zinc-100 tracking-tight leading-[1.15] font-display">
+                    Document analysis, <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-indigo-400 to-violet-300">
+                      solved.
+                    </span>
+                  </h1>
                   
-                  <div className="flex justify-between text-[10px] font-extrabold text-zinc-500 mt-3 px-1 uppercase tracking-wider font-mono">
-                    <span>Brief (50)</span>
-                    <span>Standard (250)</span>
-                    <span>Comprehensive (500)</span>
-                  </div>
-                </motion.div>
+                  <p className="text-zinc-400 text-sm leading-relaxed max-w-md">
+                    Upload any academic PDF, quiz, or homework sheet. Automatically extract questions from text or diagrams, generate structured pointwise solutions, and export as vector PDFs.
+                  </p>
+                </div>
 
-                {/* Target Language Selection Tab Controller */}
-                <motion.div 
-                  whileHover={{ y: -1 }}
-                  className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden animate-fade-in"
-                >
-                  <div className="flex justify-between items-center mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
-                        <i className="ri-translate-2 text-lg leading-none"></i>
+                {/* Unified Control Panel */}
+                <div className="bg-zinc-900/40 p-6 rounded-3xl border border-zinc-850 shadow-2xl relative overflow-hidden animate-neon-glow animate-light-sweep flex-1 flex flex-col justify-center min-h-[300px]">
+                  {!apiKey ? (
+                    <form onSubmit={handleApiKeySubmit} className="space-y-5">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
+                          <i className="ri-key-2-line text-lg leading-none"></i>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Gemini API Key Required</h4>
+                          <p className="text-xs text-zinc-500">Your key stays local in your browser session</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Target Explanation Language</h4>
-                        <p className="text-xs text-zinc-500">Choose the language script for your explanations</p>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1 bg-zinc-950/80 rounded-2xl border border-zinc-800/60 font-sans">
-                    {[
-                      { id: 'english', label: 'English', native: 'English' },
-                      { id: 'bengali', label: 'Bengali', native: 'বাংলা' },
-                      { id: 'banglish', label: 'Banglish', native: 'বাংলা + Eng' },
-                      { id: 'hindi', label: 'Hindi', native: 'हिन्दी' },
-                      { id: 'hinglish', label: 'Hinglish', native: 'Hinglish' },
-                      { id: 'tamil', label: 'Tamil', native: 'Tamil' },
-                      { id: 'telugu', label: 'Telugu', native: 'Telugu' },
-                      { id: 'marathi', label: 'Marathi', native: 'Marathi' },
-                      { id: 'gujarati', label: 'Gujarati', native: 'Gujarati' },
-                      { id: 'kannada', label: 'Kannada', native: 'Kannada' },
-                    ].map((lang) => {
-                      const isSelected = language === lang.id;
-                      return (
+                      <div className="space-y-3">
+                        <input
+                          id="gemini-api-key"
+                          type="password"
+                          value={apiKeyInput}
+                          onChange={(event) => setApiKeyInput(event.target.value)}
+                          placeholder="Paste your Gemini API key"
+                          autoComplete="off"
+                          className="w-full bg-zinc-950 text-zinc-100 placeholder-zinc-650 text-sm px-4 py-3.5 rounded-2xl border border-zinc-850 focus:outline-none focus:border-indigo-600 transition-colors"
+                        />
                         <button
-                          key={lang.id}
-                          type="button"
-                          onClick={() => setLanguage(lang.id)}
-                          className={`relative py-3.5 px-1.5 rounded-xl text-center transition-colors duration-250 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 flex flex-col items-center justify-center select-none ${
-                            isSelected 
-                              ? 'text-indigo-400' 
-                              : 'text-zinc-400 hover:text-zinc-200'
-                          }`}
+                          type="submit"
+                          className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-widest py-4 rounded-2xl transition-colors shadow-lg shadow-indigo-600/10 active:scale-95"
                         >
-                          {isSelected && (
-                            <motion.div
-                              layoutId="activeLanguageTab"
-                              className="absolute inset-0 bg-zinc-900 rounded-xl shadow-md border border-zinc-800"
-                              transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                            />
-                          )}
-                          <span className="relative z-10 text-xs font-extrabold tracking-tight leading-none">{LANGUAGE_NATIVE_LABELS[lang.id] ?? lang.native}</span>
-                          <span className="relative z-10 text-[9px] text-zinc-500 font-medium tracking-tight mt-1">{lang.label}</span>
+                          <i className="ri-shield-check-line text-base"></i>
+                          Initialize Workspace
                         </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 text-center">
+                        Don't have a key? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">Get a free key here ↗</a>
+                      </p>
+                    </form>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Configuration header */}
+                      <div className="flex justify-between items-center pb-4 border-b border-zinc-800/80">
+                        <span className="text-xs font-bold text-zinc-400 font-display uppercase tracking-wider">Workspace Config</span>
+                        <button
+                          onClick={() => {
+                            setApiKey('');
+                            setApiKeyInput('');
+                            addToast("Gemini API key cleared", "info");
+                          }}
+                          className="text-[10px] font-bold text-zinc-500 hover:text-indigo-400 transition-colors flex items-center gap-1"
+                        >
+                          <i className="ri-key-2-line"></i> Change Key
+                        </button>
+                      </div>
 
-                <div>
+                      {/* Detail slider */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <label htmlFor="word-limit" className="font-bold text-zinc-200 text-xs tracking-tight">Explanation Length</label>
+                          <span className="bg-indigo-950/60 text-indigo-400 border border-indigo-900/40 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md">
+                            ~{wordLimit} words
+                          </span>
+                        </div>
+                        <input
+                          id="word-limit"
+                          type="range"
+                          min="50"
+                          max="500"
+                          step="10"
+                          value={wordLimit}
+                          onChange={(e) => setWordLimit(Number(e.target.value))}
+                          className="w-full h-1 bg-zinc-950 rounded-lg appearance-none cursor-pointer accent-indigo-600 transition-all"
+                        />
+                        <div className="flex justify-between text-[8px] font-bold text-zinc-500 uppercase tracking-widest font-mono">
+                          <span>Brief</span>
+                          <span>Standard</span>
+                          <span>Detailed</span>
+                        </div>
+                      </div>
+
+                      {/* Language selection grid */}
+                      <div className="space-y-3">
+                        <label className="font-bold text-zinc-200 text-xs tracking-tight block">Output Language</label>
+                        <div className="grid grid-cols-2 gap-1.5 p-1 bg-zinc-950 rounded-2xl border border-zinc-850 font-sans max-h-40 overflow-y-auto scrollbar-thin">
+                          {[
+                            { id: 'english', label: 'English', native: 'English' },
+                            { id: 'bengali', label: 'Bengali', native: 'বাংলা' },
+                            { id: 'banglish', label: 'Banglish', native: 'বাংলা + Eng' },
+                            { id: 'hindi', label: 'Hindi', native: 'हिन्दी' },
+                            { id: 'hinglish', label: 'Hinglish', native: 'Hinglish' },
+                            { id: 'tamil', label: 'Tamil', native: 'Tamil' },
+                            { id: 'telugu', label: 'Telugu', native: 'Telugu' },
+                            { id: 'marathi', label: 'Marathi', native: 'Marathi' },
+                            { id: 'gujarati', label: 'Gujarati', native: 'Gujarati' },
+                            { id: 'kannada', label: 'Kannada', native: 'Kannada' },
+                          ].map((lang) => {
+                            const isSelected = language === lang.id;
+                            return (
+                              <button
+                                key={lang.id}
+                                type="button"
+                                onClick={() => setLanguage(lang.id)}
+                                className={`relative py-2 px-3 rounded-xl text-left transition-colors duration-200 focus:outline-none flex flex-col justify-center select-none ${
+                                  isSelected 
+                                    ? 'text-indigo-400 bg-zinc-900 border border-zinc-800' 
+                                    : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                                }`}
+                              >
+                                <span className="text-xs font-bold leading-none">{LANGUAGE_NATIVE_LABELS[lang.id] ?? lang.native}</span>
+                                <span className="text-[8px] text-zinc-500 font-medium tracking-tight mt-0.5">{lang.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Side: Upload Box */}
+              <div className="lg:col-span-7 flex flex-col justify-between">
+                <div className={`h-full flex flex-col justify-center min-h-[360px] ${!apiKey ? 'pointer-events-none opacity-50 relative' : ''}`}>
+                  {!apiKey && (
+                    <div className="absolute inset-0 bg-zinc-950/20 backdrop-blur-[1px] rounded-3xl z-20 flex items-center justify-center p-6 text-center">
+                      <div className="bg-zinc-900/90 border border-zinc-800 p-6 rounded-2xl max-w-xs shadow-xl space-y-2.5">
+                        <i className="ri-lock-line text-2xl text-indigo-400"></i>
+                        <h4 className="text-sm font-bold text-zinc-150 font-display">Upload Locked</h4>
+                        <p className="text-xs text-zinc-400">Initialize your workspace with a Gemini key on the left to unlock uploads.</p>
+                      </div>
+                    </div>
+                  )}
                   <FileUpload 
                     onFileSelect={handleFileSelect} 
-                    disabled={false} 
+                    disabled={!apiKey} 
                   />
                 </div>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setApiKey('');
-                      setApiKeyInput('');
-                      addToast("Gemini API key cleared", "info");
-                    }}
-                    className="text-xs font-semibold text-zinc-500 hover:text-indigo-400 transition-colors"
-                  >
-                    Change Gemini API Key
-                  </button>
-                </div>
-                  </>
-                )}
-              </motion.div>
+              </div>
 
-            {/* Polished Bento Features Grid */}
-            <div className="grid md:grid-cols-3 gap-6 pt-6">
+            </div>
+
+            {/* Minimalist SaaS Product Feature Strip */}
+            <div className="grid md:grid-cols-3 gap-8 pt-12 border-t border-zinc-900/60">
               {[
                 {
-                  title: "Smart Segmentation",
-                  desc: "Intelligently extracts core questions while ignoring clutter, headers, and footer credits completely.",
-                  iconClass: "ri-file-question-line",
-                  color: "from-indigo-500 to-blue-500",
-                  bg: "bg-indigo-950/45 text-indigo-400 border-indigo-900/40"
+                  title: "Multimodal AI Core",
+                  desc: "Intelligently extracts formulas, charts, diagrams, and scanned texts.",
+                  iconClass: "ri-cpu-line"
                 },
                 {
-                  title: "High Precision Logic",
-                  desc: "Generates correct answers using state of the art context learning and academic rule validation.",
-                  iconClass: "ri-cpu-line",
-                  color: "from-violet-500 to-purple-500",
-                  bg: "bg-violet-950/45 text-violet-400 border-violet-900/40"
+                  title: "High-Fidelity PDF",
+                  desc: "Programmatic jsPDF vector rendering with searchable and selectable text.",
+                  iconClass: "ri-file-download-line"
                 },
                 {
-                  title: "Clean Export System",
-                  desc: "Compiles solutions, questions, and original diagrams back into perfectly formatted PDFs.",
-                  iconClass: "ri-file-download-line",
-                  color: "from-emerald-500 to-teal-500",
-                  bg: "bg-emerald-950/45 text-emerald-400 border-emerald-900/40"
+                  title: "Structured Outputs",
+                  desc: "Rigorous step-by-step pointwise answers styled for study key structures.",
+                  iconClass: "ri-file-question-line"
                 }
               ].map((item, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.2 + (i * 0.08), ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -5, scale: 1.015 }}
-                  className="bg-zinc-900/30 p-7 rounded-3xl border border-zinc-800 shadow-2xl hover:border-zinc-700 hover:shadow-indigo-500/5 transition-all duration-300"
-                >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 border ${item.bg}`}>
-                    <i className={`${item.iconClass} text-xl leading-none`}></i>
+                <div key={i} className="flex gap-4 items-start">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <i className={`${item.iconClass} text-lg leading-none`}></i>
                   </div>
-                  <h3 className="font-bold text-zinc-100 mb-2.5 text-base tracking-tight font-display">{item.title}</h3>
-                  <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                    {item.desc}
-                  </p>
-                </motion.div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-zinc-200 text-sm font-display tracking-tight">{item.title}</h4>
+                    <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
