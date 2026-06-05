@@ -120,6 +120,25 @@ This repository is pre-configured to build and deploy as a Netlify serverless ap
 
 ---
 
+## 🌐 Production Deployment (Render.com)
+
+If you are uploading large PDFs that take longer than 10 seconds to analyze, serverless environments like Netlify will time out. Instead, deploy the application to **Render.com**, which runs the persistent Node/Express server and supports the full **90-second timeout** window.
+
+### Step-by-Step Render Deployment
+
+1. Commit and push your repository to your GitHub account.
+2. Login to the [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** and select **Web Service**.
+4. Connect your GitHub repository.
+5. Configure the following fields:
+   * **Name:** `docusolver-ai`
+   * **Language:** `Node`
+   * **Build Command:** `npm run build`
+   * **Start Command:** `npm run start`
+6. Click **Deploy Web Service**. Render will build the static assets, launch the Express server, and expose port `3000` automatically.
+
+---
+
 ## 🔑 Security & API Keys
 
 DocuSolver AI is built around the **Bring Your Own Key (BYOK)** security design:
