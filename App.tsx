@@ -215,7 +215,7 @@ const App: React.FC = () => {
                 
                 {/* Brand Copy Block */}
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-extrabold tracking-widest text-indigo-400 uppercase shadow-sm w-fit">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[9px] font-black tracking-widest text-indigo-400 uppercase shadow-sm w-fit font-sans">
                     <span className="flex h-1.5 w-1.5 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
@@ -223,14 +223,14 @@ const App: React.FC = () => {
                     <span>DocuSolver AI 2.0</span>
                   </div>
                   
-                  <h1 className="text-4xl font-extrabold text-zinc-100 tracking-tight leading-[1.15] font-display">
+                  <h1 className="text-4xl sm:text-[45px] font-black text-zinc-100 tracking-tighter leading-[1.05] font-display">
                     Document analysis, <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-indigo-400 to-violet-300">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-300">
                       solved.
                     </span>
                   </h1>
                   
-                  <p className="text-zinc-400 text-sm leading-relaxed max-w-md">
+                  <p className="text-zinc-400/80 text-sm sm:text-[15px] font-medium leading-relaxed max-w-md">
                     Upload any academic PDF, quiz, or homework sheet. Automatically extract questions from text or diagrams, generate structured pointwise solutions, and export as vector PDFs.
                   </p>
                 </div>
