@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Search, PenTool, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ProcessingStatus } from '../types';
 
@@ -29,9 +28,9 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
   if (status === ProcessingStatus.IDLE || status === ProcessingStatus.ERROR) return null;
 
   const steps = [
-    { label: 'Reading PDF', desc: 'Validating structure', icon: FileText },
-    { label: 'Analyzing Content', desc: 'Locating questions', icon: Search },
-    { label: 'Generating Answers', desc: 'Scribbling solutions', icon: PenTool },
+    { label: 'Reading PDF', desc: 'Validating structure', iconClass: 'ri-file-text-line' },
+    { label: 'Analyzing Content', desc: 'Locating questions', iconClass: 'ri-search-line' },
+    { label: 'Generating Answers', desc: 'Scribbling solutions', iconClass: 'ri-pen-nib-line' },
   ];
 
   return (
@@ -53,7 +52,7 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
             transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
             className="inline-flex p-2 bg-indigo-950/40 text-indigo-400 border border-indigo-900/50 rounded-xl mb-2"
           >
-            <Sparkles className="w-5 h-5" />
+            <i className="ri-sparkling-fill text-lg"></i>
           </motion.div>
           <h3 className="text-2xl font-extrabold text-zinc-100 tracking-tight font-display">
             {activeStep === 3 ? 'Processing Complete!' : 'Analyzing Document'}
@@ -83,7 +82,6 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
           {steps.map((step, index) => {
             const isActive = index === activeStep;
             const isCompleted = index < activeStep;
-            const Icon = step.icon;
 
             return (
               <div key={index} className="flex flex-col items-center relative group">
@@ -100,11 +98,11 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
                   className="w-11 h-11 rounded-full flex items-center justify-center border-[3px] z-10 shadow-sm"
                 >
                   {isCompleted ? (
-                    <CheckCircle className="w-5.5 h-5.5 text-white" />
+                    <i className="ri-checkbox-circle-fill text-lg text-white"></i>
                   ) : isActive ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                    <i className="ri-loader-2-line text-lg animate-spin text-indigo-400"></i>
                   ) : (
-                    <Icon className="w-4.5 h-4.5" />
+                    <i className={`${step.iconClass} text-base`}></i>
                   )}
                 </motion.div>
                 

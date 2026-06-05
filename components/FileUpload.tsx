@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import { Upload, FileText, AlertCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface FileUploadProps {
@@ -93,7 +92,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
             animate={isDragging ? { y: [0, -10, 0], scale: 1.1 } : {}}
             transition={{ repeat: isDragging ? Infinity : 0, duration: 1.2, ease: "easeInOut" }}
             className={`
-              p-5 rounded-2xl transition-all duration-300 transform
+              p-5 rounded-2xl transition-all duration-300 transform flex items-center justify-center w-16 h-16
               ${isDragging 
                 ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' 
                 : 'bg-zinc-800 text-zinc-400 group-hover:bg-indigo-950/40 group-hover:text-indigo-400 group-hover:shadow-lg group-hover:shadow-indigo-500/15'
@@ -101,9 +100,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
             `}
           >
             {isDragging ? (
-              <Upload className="w-8 h-8" />
+              <i className="ri-upload-2-line text-3xl leading-none"></i>
             ) : (
-              <FileText className="w-8 h-8 transition-transform group-hover:rotate-3" />
+              <i className="ri-file-text-line text-3xl leading-none transition-transform group-hover:rotate-3"></i>
             )}
           </motion.div>
           
@@ -117,7 +116,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-950 border border-zinc-800/80 rounded-full text-xs font-semibold text-zinc-500 group-hover:border-indigo-900/50 group-hover:bg-indigo-950/40 group-hover:text-indigo-400 transition-all">
-            <Sparkles className="w-3.5 h-3.5" />
+            <i className="ri-sparkling-2-line text-sm leading-none"></i>
             <span>PDF files up to 15MB</span>
           </div>
         </div>
@@ -131,7 +130,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             className="mt-4 flex items-center justify-center text-rose-400 bg-rose-950/20 border border-rose-900/40 p-4 rounded-2xl"
           >
-            <AlertCircle className="w-5 h-5 mr-2.5 flex-shrink-0 text-rose-500 animate-bounce" />
+            <i className="ri-error-warning-line text-xl leading-none mr-2.5 flex-shrink-0 text-rose-500 animate-bounce"></i>
             <span className="text-sm font-semibold">{error}</span>
           </motion.div>
         )}

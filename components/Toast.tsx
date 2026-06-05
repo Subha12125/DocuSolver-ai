@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { CheckCircle, AlertCircle, X, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -25,17 +24,17 @@ const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
 
   const config = {
     success: {
-      icon: <CheckCircle className="w-5 h-5 text-emerald-500 animate-pulse" />,
+      icon: <i className="ri-checkbox-circle-fill text-xl text-emerald-500 animate-pulse leading-none"></i>,
       className: "border-emerald-950/40 bg-zinc-900/90 text-zinc-200 shadow-2xl shadow-emerald-950/15",
       accent: "bg-emerald-500"
     },
     error: {
-      icon: <AlertCircle className="w-5 h-5 text-rose-500 animate-bounce" />,
+      icon: <i className="ri-error-warning-fill text-xl text-rose-500 animate-bounce leading-none"></i>,
       className: "border-rose-950/40 bg-zinc-900/90 text-zinc-200 shadow-2xl shadow-rose-950/15",
       accent: "bg-rose-500"
     },
     info: {
-      icon: <Info className="w-5 h-5 text-indigo-500" />,
+      icon: <i className="ri-information-fill text-xl text-indigo-500 leading-none"></i>,
       className: "border-indigo-950/40 bg-zinc-900/90 text-zinc-200 shadow-2xl shadow-indigo-950/15",
       accent: "bg-indigo-500"
     }
@@ -65,7 +64,7 @@ const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
         onClick={() => onClose(toast.id)}
         className="ml-2.5 bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg p-1.5 inline-flex h-7 w-7 items-center justify-center transition-all duration-200 active:scale-90"
       >
-        <X className="w-4 h-4" />
+        <i className="ri-close-line text-base"></i>
       </button>
     </motion.div>
   );

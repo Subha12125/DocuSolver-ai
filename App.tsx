@@ -7,7 +7,6 @@ import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
 import { fileToBase64, generateAnswerPDF, openPDFPreview } from './services/pdfService';
 import { generateAnswers } from './services/geminiService';
 import { QAPair, ProcessingState, ProcessingStatus } from './types';
-import { FileQuestion, AlertTriangle, SlidersHorizontal, FileWarning, Cpu, FileDown, Languages, KeyRound, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const LANGUAGE_NATIVE_LABELS: Record<string, string> = {
@@ -246,8 +245,8 @@ const App: React.FC = () => {
                     className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden"
                   >
                     <div className="flex items-center gap-3 mb-5">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400">
-                        <KeyRound className="w-5 h-5" />
+                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
+                        <i className="ri-key-2-line text-lg leading-none"></i>
                       </div>
                       <div>
                         <label htmlFor="gemini-api-key" className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Gemini API Key Required</label>
@@ -269,7 +268,7 @@ const App: React.FC = () => {
                         type="submit"
                         className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-widest px-5 py-3.5 rounded-2xl transition-colors shadow-lg shadow-indigo-600/10"
                       >
-                        <ShieldCheck className="w-4 h-4" />
+                        <i className="ri-shield-check-line text-base"></i>
                         Save Key
                       </button>
                     </div>
@@ -283,8 +282,8 @@ const App: React.FC = () => {
                 >
                   <div className="flex justify-between items-center mb-5">
                     <div className="flex items-center gap-3">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400">
-                        <SlidersHorizontal className="w-5 h-5" />
+                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
+                        <i className="ri-equalizer-line text-lg leading-none"></i>
                       </div>
                       <div>
                         <label htmlFor="word-limit" className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Target Explanation Detail</label>
@@ -326,8 +325,8 @@ const App: React.FC = () => {
                 >
                   <div className="flex justify-between items-center mb-5">
                     <div className="flex items-center gap-3">
-                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400">
-                        <Languages className="w-5 h-5" />
+                      <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">
+                        <i className="ri-translate-2 text-lg leading-none"></i>
                       </div>
                       <div>
                         <h4 className="font-bold text-zinc-100 text-sm font-display tracking-tight block">Target Explanation Language</h4>
@@ -405,21 +404,21 @@ const App: React.FC = () => {
                 {
                   title: "Smart Segmentation",
                   desc: "Intelligently extracts core questions while ignoring clutter, headers, and footer credits completely.",
-                  icon: FileQuestion,
+                  iconClass: "ri-file-question-line",
                   color: "from-indigo-500 to-blue-500",
                   bg: "bg-indigo-950/45 text-indigo-400 border-indigo-900/40"
                 },
                 {
                   title: "High Precision Logic",
                   desc: "Generates correct answers using state of the art context learning and academic rule validation.",
-                  icon: Cpu,
+                  iconClass: "ri-cpu-line",
                   color: "from-violet-500 to-purple-500",
                   bg: "bg-violet-950/45 text-violet-400 border-violet-900/40"
                 },
                 {
                   title: "Clean Export System",
                   desc: "Compiles solutions, questions, and original diagrams back into perfectly formatted PDFs.",
-                  icon: FileDown,
+                  iconClass: "ri-file-download-line",
                   color: "from-emerald-500 to-teal-500",
                   bg: "bg-emerald-950/45 text-emerald-400 border-emerald-900/40"
                 }
@@ -433,7 +432,7 @@ const App: React.FC = () => {
                   className="bg-zinc-900/30 p-7 rounded-3xl border border-zinc-800 shadow-2xl hover:border-zinc-700 hover:shadow-indigo-500/5 transition-all duration-300"
                 >
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 border ${item.bg}`}>
-                    <item.icon className="w-5.5 h-5.5" />
+                    <i className={`${item.iconClass} text-xl leading-none`}></i>
                   </div>
                   <h3 className="font-bold text-zinc-100 mb-2.5 text-base tracking-tight font-display">{item.title}</h3>
                   <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
@@ -461,9 +460,9 @@ const App: React.FC = () => {
           >
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-rose-950/20 border border-rose-900/40 mb-6 text-rose-400 shadow-md">
               {processingState.message?.includes("image") ? (
-                <FileWarning className="w-9 h-9" />
+                <i className="ri-file-warning-line text-4xl leading-none"></i>
               ) : (
-                <AlertTriangle className="w-9 h-9" />
+                <i className="ri-alert-line text-4xl leading-none"></i>
               )}
             </div>
             <h2 className="text-2xl font-bold text-zinc-100 font-display tracking-tight mb-2">Extraction Obstacle</h2>

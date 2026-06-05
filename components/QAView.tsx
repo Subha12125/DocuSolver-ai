@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { QAPair } from '../types';
-import { CheckCircle, Download, ArrowLeft, Eye, AlignLeft, FileCode, LayoutList, ChevronDown, ChevronRight, FileDown, ChevronsUpDown, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface QAViewProps {
@@ -331,9 +330,9 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/15 text-emerald-400"
+                className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/15 text-emerald-400 flex items-center justify-center"
               >
-                <CheckCircle className="w-5 h-5" />
+                <i className="ri-checkbox-circle-fill text-xl"></i>
               </motion.div>
               <div>
                 <h2 className="text-base font-bold text-zinc-100 font-display tracking-tight">Answers Prepared</h2>
@@ -348,7 +347,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 onClick={onReset}
                 className="px-3.5 py-2.5 text-[11px] font-bold text-zinc-400 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 hover:text-zinc-200 rounded-xl focus:outline-none flex items-center transition-all"
               >
-                <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                <i className="ri-arrow-left-line text-sm mr-1.5"></i>
                 Reset
               </motion.button>
               <motion.button
@@ -358,7 +357,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 className="px-3.5 py-2.5 text-[11px] font-bold text-indigo-400 bg-indigo-950/30 hover:bg-indigo-950/60 border border-indigo-900/50 rounded-xl focus:outline-none flex items-center transition-all"
                 title="Preview PDF"
               >
-                <Eye className="w-3.5 h-3.5 mr-1.5" />
+                <i className="ri-eye-line text-sm mr-1.5"></i>
                 Preview
               </motion.button>
               <motion.button
@@ -368,7 +367,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 className="px-4 py-2.5 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none shadow-md shadow-indigo-600/10 flex items-center transition-all"
                 title="Download PDF"
               >
-                <FileDown className="w-3.5 h-3.5 mr-1.5" />
+                <i className="ri-file-download-line text-sm mr-1.5"></i>
                 Download PDF
               </motion.button>
             </div>
@@ -379,9 +378,9 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
             {/* View Mode Switcher */}
             <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800/60 flex items-center space-x-1 flex-shrink-0">
                {[
-                 { id: 'structured', icon: LayoutList, label: 'Structured' },
-                 { id: 'plain', icon: AlignLeft, label: 'Plain' },
-                 { id: 'markdown', icon: FileCode, label: 'Raw' }
+                 { id: 'structured', iconClass: 'ri-layout-grid-line', label: 'Structured' },
+                 { id: 'plain', iconClass: 'ri-align-left', label: 'Plain' },
+                 { id: 'markdown', iconClass: 'ri-file-code-line', label: 'Raw' }
                ].map((opt) => (
                  <button
                     key={opt.id}
@@ -399,7 +398,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                         transition={{ type: "spring", stiffness: 420, damping: 28 }}
                       />
                     )}
-                    <opt.icon className="w-3.5 h-3.5 relative z-10" />
+                    <i className={`${opt.iconClass} text-sm relative z-10`}></i>
                     <span className="relative z-10 hidden sm:inline">{opt.label}</span>
                  </button>
                ))}
@@ -410,7 +409,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
               onClick={toggleAll}
               className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 rounded-lg hover:bg-zinc-900/50 flex-shrink-0"
             >
-              <ChevronsUpDown className="w-3.5 h-3.5" />
+              <i className="ri-arrow-up-down-line text-sm"></i>
               <span>{allExpanded ? 'Collapse All' : 'Expand All'}</span>
             </button>
           </div>
@@ -459,12 +458,12 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                       </h3>
                     </div>
 
-                    <div className={`flex-shrink-0 mt-1 transition-all duration-200 p-1.5 rounded-lg ${
+                    <div className={`flex-shrink-0 mt-1 transition-all duration-200 p-1.5 rounded-lg flex items-center justify-center ${
                       isExpanded 
                         ? 'text-indigo-400 bg-indigo-950/40 border border-indigo-900/30' 
                         : 'text-zinc-600 bg-zinc-900 border border-zinc-800 group-hover:text-zinc-400'
                     }`}>
-                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      {isExpanded ? <i className="ri-chevron-down-line text-sm"></i> : <i className="ri-chevron-right-line text-sm"></i>}
                     </div>
                   </div>
 
@@ -526,7 +525,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
             className="fixed bottom-8 right-8 z-50 w-11 h-11 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-600/20 transition-colors"
             title="Back to top"
           >
-            <ArrowUp className="w-5 h-5" />
+            <i className="ri-arrow-up-line text-xl"></i>
           </motion.button>
         )}
       </AnimatePresence>
