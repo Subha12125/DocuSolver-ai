@@ -39,25 +39,25 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-zinc-900/50 rounded-3xl p-10 border border-zinc-800/80 shadow-2xl relative overflow-hidden"
+        className="bg-[#161A23] rounded-2xl p-10 border border-zinc-800 shadow-2xl relative overflow-hidden"
       >
         {/* Decorative corner background lights */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/15 to-violet-500/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-sky-500/15 to-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#6D5DFC]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-[#8B7FFF]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         {/* Header Text */}
         <div className="text-center mb-12 space-y-3 relative z-10">
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-            className="inline-flex p-2 bg-indigo-950/40 text-indigo-400 border border-indigo-900/50 rounded-xl mb-2"
+            className="inline-flex p-2 bg-[#6D5DFC]/10 text-[#8B7FFF] border border-[#6D5DFC]/20 rounded-xl mb-2"
           >
             <i className="ri-sparkling-fill text-lg"></i>
           </motion.div>
-          <h3 className="text-2xl font-extrabold text-zinc-100 tracking-tight font-display">
+          <h3 className="text-xl font-bold text-white tracking-tight font-display">
             {activeStep === 3 ? 'Processing Complete!' : 'Analyzing Document'}
           </h3>
-          <p className="text-zinc-400 text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-[#B8C0CC] text-xs max-w-md mx-auto leading-relaxed font-sans">
             {activeStep === 2 && status !== ProcessingStatus.COMPLETE 
               ? "Formulating step-by-step solutions with detailed logic..." 
               : message || "Please wait while our academic AI processes your document."}
@@ -67,11 +67,11 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
         {/* Stepper Visual */}
         <div className="relative flex justify-between items-center mb-6 px-6">
           {/* Connecting Line Background */}
-          <div className="absolute left-6 right-6 top-[22px] h-[3px] bg-zinc-800 rounded-full -z-10"></div>
+          <div className="absolute left-6 right-6 top-[22px] h-[3px] bg-[#1D2230] rounded-full -z-10"></div>
           
           {/* Connecting Line Progress */}
           <motion.div 
-            className="absolute left-6 top-[22px] h-[3px] bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full -z-10"
+            className="absolute left-6 top-[22px] h-[3px] bg-gradient-to-r from-[#6D5DFC] to-[#8B7FFF] rounded-full -z-10"
             initial={{ width: "0%" }}
             animate={{ 
               width: `calc(${Math.min((activeStep / (steps.length - 1)) * 100, 100)}% - 12px)`
@@ -89,10 +89,10 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
                   initial={false}
                   animate={
                     isCompleted 
-                      ? { backgroundColor: '#4f46e5', borderColor: '#4f46e5', color: '#ffffff', scale: 1 } 
+                      ? { backgroundColor: '#6D5DFC', borderColor: '#6D5DFC', color: '#ffffff', scale: 1 } 
                       : isActive 
-                        ? { backgroundColor: '#09090b', borderColor: '#4f46e5', color: '#818cf8', scale: 1.15 } 
-                        : { backgroundColor: '#18181b', borderColor: '#27272a', color: '#52525b', scale: 1 }
+                        ? { backgroundColor: '#161A23', borderColor: '#6D5DFC', color: '#8B7FFF', scale: 1.15 } 
+                        : { backgroundColor: '#1D2230', borderColor: '#27272a', color: '#8B93A7', scale: 1 }
                   }
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   className="w-11 h-11 rounded-full flex items-center justify-center border-[3px] z-10 shadow-sm"
@@ -100,7 +100,7 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
                   {isCompleted ? (
                     <i className="ri-checkbox-circle-fill text-lg text-white"></i>
                   ) : isActive ? (
-                    <i className="ri-loader-2-line text-lg animate-spin text-indigo-400"></i>
+                    <i className="ri-loader-2-line text-lg animate-spin text-[#8B7FFF]"></i>
                   ) : (
                     <i className={`${step.iconClass} text-base`}></i>
                   )}
@@ -110,12 +110,12 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
                   <span 
                     className={`
                       text-xs font-bold whitespace-nowrap transition-colors duration-300 tracking-tight
-                      ${isActive || isCompleted ? 'text-zinc-100 font-display' : 'text-zinc-500'}
+                      ${isActive || isCompleted ? 'text-white font-display' : 'text-[#8B93A7]'}
                     `}
                   >
                     {step.label}
                   </span>
-                  <span className="text-[10px] text-zinc-500 hidden md:block whitespace-nowrap mt-0.5">
+                  <span className="text-[10px] text-[#8B93A7] hidden md:block whitespace-nowrap mt-0.5 font-sans">
                     {step.desc}
                   </span>
                 </div>

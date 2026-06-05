@@ -26,7 +26,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
       setError('Please upload a valid PDF file containing selectable questions.');
       return;
     }
-    if (file.size > 15 * 1024 * 1024) { // Increased to 15MB limit
+    if (file.size > 15 * 1024 * 1024) {
       setError('File size exceeds 15MB limit.');
       return;
     }
@@ -63,21 +63,21 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        whileHover={disabled ? {} : { scale: 1.015, y: -2 }}
-        whileTap={disabled ? {} : { scale: 0.985 }}
+        whileHover={disabled ? {} : { y: -2 }}
+        whileTap={disabled ? {} : { scale: 0.99 }}
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
         className={`
-          relative border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden group
-          ${disabled ? 'opacity-40 cursor-not-allowed bg-zinc-900/40 border-zinc-900' : 'bg-zinc-900/30 border-zinc-800/80'}
+          relative border-2 border-dashed rounded-[16px] p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden group
+          ${disabled 
+            ? 'opacity-40 cursor-not-allowed bg-[#161A23] border-[#1D2230]' 
+            : 'bg-[#161A23] border-[#1D2230]'
+          }
           ${isDragging 
-            ? 'border-indigo-500 bg-indigo-950/20 ring-4 ring-indigo-500/15 shadow-xl shadow-indigo-500/10' 
-            : 'hover:border-zinc-700 hover:shadow-2xl hover:shadow-indigo-500/5'
+            ? 'border-[#6D5DFC] bg-[#1D2230]/80 shadow-[0_0_20px_rgba(109,93,252,0.08)]' 
+            : 'hover:border-zinc-700 hover:bg-[#1D2230]/40'
           }
         `}
       >
-        {/* Modern ambient radial glow on drag */}
-        <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08),transparent_65%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none -z-10`} />
-
         <input
           ref={fileInputRef}
           type="file"
@@ -89,35 +89,38 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
         
         <div className="flex flex-col items-center justify-center space-y-5">
           <motion.div 
-            animate={isDragging ? { y: [0, -10, 0], scale: 1.1 } : {}}
-            transition={{ repeat: isDragging ? Infinity : 0, duration: 1.2, ease: "easeInOut" }}
+            animate={isDragging ? { scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] } : {}}
+            transition={{ repeat: isDragging ? Infinity : 0, duration: 1.5, ease: "easeInOut" }}
             className={`
-              p-5 rounded-2xl transition-all duration-300 transform flex items-center justify-center w-16 h-16
+              p-4 rounded-xl transition-all duration-300 flex items-center justify-center w-14 h-14
               ${isDragging 
-                ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' 
-                : 'bg-zinc-800 text-zinc-400 group-hover:bg-indigo-950/40 group-hover:text-indigo-400 group-hover:shadow-lg group-hover:shadow-indigo-500/15'
+                ? 'bg-[#6D5DFC] text-white' 
+                : 'bg-[#1D2230] text-[#8B93A7] group-hover:bg-[#6D5DFC]/10 group-hover:text-[#6D5DFC]'
               }
             `}
           >
-            {isDragging ? (
-              <i className="ri-upload-2-line text-3xl leading-none"></i>
-            ) : (
-              <i className="ri-file-text-line text-3xl leading-none transition-transform group-hover:rotate-3"></i>
-            )}
+            <i className="ri-file-text-line text-2xl leading-none"></i>
           </motion.div>
           
           <div className="space-y-2">
-            <p className="text-lg font-bold text-zinc-100 font-display tracking-tight group-hover:text-indigo-400 transition-colors">
-              {isDragging ? 'Drop your document here' : 'Select or drop your PDF'}
+            <p className="text-base font-bold text-white tracking-tight font-display transition-colors">
+              {isDragging ? 'Drop PDF to solve' : 'Drop your PDF here'}
             </p>
-            <p className="text-sm text-zinc-400 max-w-sm mx-auto leading-relaxed">
-              Drop quizzes, homework sheets, or scanned documents to generate complete, high-fidelity answers.
+            <p className="text-xs text-[#8B93A7] max-w-sm mx-auto leading-relaxed font-sans">
+              Supports scanned documents, homework sheets, quizzes, and assignments
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-950 border border-zinc-800/80 rounded-full text-xs font-semibold text-zinc-500 group-hover:border-indigo-900/50 group-hover:bg-indigo-950/40 group-hover:text-indigo-400 transition-all">
-            <i className="ri-sparkling-2-line text-sm leading-none"></i>
-            <span>PDF files up to 15MB</span>
+          <div className="pt-2 flex flex-col items-center gap-3">
+            <span className="px-4 py-2.5 bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 text-white text-xs font-semibold rounded-xl transition-all shadow-sm">
+              Choose File
+            </span>
+            
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#8B93A7] uppercase tracking-wider">
+              <span>Max size: 15MB</span>
+              <span className="text-[#1D2230]">•</span>
+              <span>Format: PDF</span>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -128,10 +131,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, disabled }) => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="mt-4 flex items-center justify-center text-rose-400 bg-rose-950/20 border border-rose-900/40 p-4 rounded-2xl"
+            className="mt-4 flex items-center justify-center text-rose-400 bg-rose-950/10 border border-rose-900/30 p-4 rounded-2xl animate-fade-in"
           >
-            <i className="ri-error-warning-line text-xl leading-none mr-2.5 flex-shrink-0 text-rose-500 animate-bounce"></i>
-            <span className="text-sm font-semibold">{error}</span>
+            <i className="ri-error-warning-line text-lg leading-none mr-2.5 flex-shrink-0 text-rose-400 animate-bounce"></i>
+            <span className="text-xs font-semibold">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>

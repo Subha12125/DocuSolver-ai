@@ -4,28 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DocuSolver AI</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='25' fill='%236D5DFC'/%3E%3Cpath d='M30 30h40v40H30z' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M40 20v10M50 20v10M60 20v10M40 70v10M50 70v10M60 70v10M20 40h10M20 50h10M20 60h10M70 40h10M70 50h10M70 60h10' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Plus Jakarta Sans', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'sans-serif'],
-              display: ['Outfit', 'sans-serif'],
+              sans: ['Inter', 'Plus Jakarta Sans', 'Noto Sans Bengali', 'Noto Sans Devanagari', 'sans-serif'],
+              display: ['Inter', 'Outfit', 'sans-serif'],
             },
             colors: {
-              brand: {
-                50: '#f5f3ff',
-                100: '#ede9fe',
-                200: '#ddd6fe',
-                300: '#c4b5fd',
-                400: '#a78bfa',
-                500: '#8b5cf6',
-                600: '#7c3aed',
-                705: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
+              saas: {
+                bg: '#0F1117',
+                surface: '#161A23',
+                card: '#1D2230',
+                brand: '#6D5DFC',
+                accent: '#8B7FFF',
               },
             }
           }
@@ -34,7 +30,7 @@
     </script>
     <style>
       body {
-        font-family: 'Plus Jakarta Sans', 'Noto Sans Bengali', 'Noto Sans Devanagari', sans-serif;
+        font-family: 'Inter', 'Plus Jakarta Sans', 'Noto Sans Bengali', 'Noto Sans Devanagari', sans-serif;
       }
       
       /* Custom Animations */
@@ -71,79 +67,29 @@
         opacity: 0; /* Start hidden */
       }
 
-      /* Stagger Delays */
-      .delay-100 { animation-delay: 100ms; }
-      .delay-200 { animation-delay: 200ms; }
-      .delay-300 { animation-delay: 300ms; }
-      .delay-500 { animation-delay: 500ms; }
-
-      /* Specular Light Sweep Animation */
-      @keyframes lightSweep {
-        0% {
-          transform: translateX(-150%) skewX(-25deg);
-        }
-        35%, 100% {
-          transform: translateX(150%) skewX(-25deg);
-        }
-      }
-      .animate-light-sweep {
-        position: relative;
-        overflow: hidden;
-      }
-      .animate-light-sweep::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          to right,
-          transparent,
-          rgba(255, 255, 255, 0.0) 30%,
-          rgba(255, 255, 255, 0.1) 45%,
-          rgba(255, 255, 255, 0.22) 50%,
-          rgba(255, 255, 255, 0.1) 55%,
-          rgba(255, 255, 255, 0.0) 70%,
-          transparent
-        );
-        animation: lightSweep 5.5s ease-in-out infinite;
-        pointer-events: none;
-      }
-
-      /* Glowing Neon Border/Shadow Animation */
-      @keyframes neonGlow {
-        0%, 100% {
-          border-color: rgba(99, 102, 241, 0.2);
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 
-                      0 0 15px rgba(99, 102, 241, 0.05),
-                      inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
-        }
-        50% {
-          border-color: rgba(139, 92, 246, 0.45);
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 
-                      0 0 25px rgba(139, 92, 246, 0.22),
-                      inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
-        }
-      }
-      .animate-neon-glow {
-        animation: neonGlow 6s ease-in-out infinite;
-      }
-
       .liquid-glass-header {
-        background: rgba(12, 12, 16, 0.45);
-        backdrop-filter: blur(24px) saturate(190%);
-        -webkit-backdrop-filter: blur(24px) saturate(190%);
-        border: 1px solid rgba(255, 255, 255, 0.09);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-        animation: neonGlow 6s ease-in-out infinite;
+        background: rgba(22, 26, 35, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+      }
+
+      /* Specular Background Grid Pattern */
+      .bg-grid-pattern {
+        background-size: 40px 40px;
+        background-image: 
+          linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 80%);
       }
     </style>
 
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-zinc-950 text-zinc-50 antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+  <body class="bg-saas-bg text-white antialiased selection:bg-[#6D5DFC]/30 selection:text-[#8B7FFF]">
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

@@ -53,17 +53,14 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
     setExpandedPairs(newState);
   };
 
-  // Enhanced header regex with math-specific headers (no 'Concept:' — user wants direct answers)
+  // Enhanced header regex with math-specific headers
   const headerRegex = /^(Given|Find|Step \d+|Method \d+|Note|Explanation|Solution|Analysis|Answer|Conclusion|Summary|Final Answer|Formula|Calculation|Result|দেওয়া আছে|দেয়া আছে|প্রদত্ত|ধাপ \d+|পদক্ষেপ \d+|নোট|ব্যাখ্যা|বিশ্লেষণ|সমাধান|উত্তর|উপসংহার|ফলাফল|সূত্র|গণনা|दिया है|ज्ञात है|चरण \d+|कदम \d+|नोट|स्पष्टीकरण|हल|निष्कर्ष|परिणाम|सूत्र|गणना):/i;
 
   // Detect math/equation lines: lines with = sign, arrows, or pure numeric expressions
   const isMathLine = (line: string): boolean => {
     const trimmed = line.trim();
-    // Lines starting with = or => are calculation continuations
     if (/^(=>|=\s)/.test(trimmed)) return true;
-    // Lines that are primarily equations: "F = m × a", "x = 5 + 3", etc.
     if (/^[A-Za-z_\d\s()]+\s*=\s*.+/.test(trimmed) && trimmed.length < 120) return true;
-    // Lines with arrow chains
     if (trimmed.includes('=>') && /\d/.test(trimmed)) return true;
     return false;
   };
@@ -84,39 +81,39 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
     const isGiven = hLower.includes('given') || hLower.includes('find') || header.includes('দেওয়া') || header.includes('দেয়া') || header.includes('প্রদত্ত') || header.includes('दिया') || header.includes('ज्ञात');
 
     if (isConclusion) return {
-      card: 'bg-emerald-950/30 border-emerald-800/60 ring-1 ring-emerald-500/10',
-      badge: 'bg-emerald-900/60 text-emerald-300 border border-emerald-700/40',
-      text: 'font-semibold text-emerald-100',
+      card: 'bg-emerald-950/20 border-emerald-900/30 text-emerald-350',
+      badge: 'bg-emerald-950/50 text-emerald-300 border border-emerald-900/40',
+      text: 'font-semibold text-emerald-200',
       icon: '🎯'
     };
     if (isFormula) return {
-      card: 'bg-amber-950/25 border-amber-800/50 ring-1 ring-amber-500/10',
-      badge: 'bg-amber-900/50 text-amber-300 border border-amber-700/40',
-      text: 'font-mono text-amber-200',
+      card: 'bg-[#1D2230] border-zinc-800 text-[#8B7FFF]',
+      badge: 'bg-[#6D5DFC]/10 text-[#8B7FFF] border border-[#6D5DFC]/20',
+      text: 'font-mono text-zinc-100',
       icon: '📐'
     };
     if (isCalculation) return {
-      card: 'bg-cyan-950/25 border-cyan-800/50 ring-1 ring-cyan-500/10',
-      badge: 'bg-cyan-900/50 text-cyan-300 border border-cyan-700/40',
-      text: 'font-mono text-cyan-200',
+      card: 'bg-[#1D2230] border-zinc-800 text-[#8B7FFF]',
+      badge: 'bg-[#6D5DFC]/10 text-[#8B7FFF] border border-[#6D5DFC]/20',
+      text: 'font-mono text-zinc-100',
       icon: '🧮'
     };
     if (isGiven) return {
-      card: 'bg-blue-950/25 border-blue-800/50 ring-1 ring-blue-500/10',
-      badge: 'bg-blue-900/50 text-blue-300 border border-blue-700/40',
+      card: 'bg-blue-950/15 border-blue-900/35 text-blue-300',
+      badge: 'bg-blue-950/40 text-blue-300 border border-blue-900/40',
       text: 'text-blue-200',
       icon: '📋'
     };
     if (isStep) return {
-      card: 'bg-indigo-950/25 border-indigo-800/50',
-      badge: 'bg-indigo-900/50 text-indigo-300 border border-indigo-700/40',
-      text: 'text-zinc-300',
+      card: 'bg-[#1D2230] border-zinc-850',
+      badge: 'bg-zinc-800 text-zinc-300 border border-zinc-700/40',
+      text: 'text-[#B8C0CC]',
       icon: ''
     };
     return {
-      card: 'bg-zinc-900/50 border-zinc-800/60',
-      badge: 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/40',
-      text: 'text-zinc-300',
+      card: 'bg-[#1D2230] border-zinc-850',
+      badge: 'bg-zinc-800 text-zinc-300 border border-zinc-700/40',
+      text: 'text-[#B8C0CC]',
       icon: ''
     };
   };
@@ -130,7 +127,6 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
       const line = lines[i];
       const trimmed = line.trim();
 
-      // Skip empty lines — add subtle spacing
       if (!trimmed) {
         elements.push(<div key={i} className="h-1.5" />);
         i++;
@@ -144,7 +140,6 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         const content = trimmed.substring(header.length).trim();
         const style = getHeaderStyle(header);
 
-        // Collect continuation lines for Given/Find (multi-line known values)
         const headerLower = header.toLowerCase();
         const isMultiLine = headerLower.includes('given') || headerLower.includes('find');
         const subLines: string[] = [];
@@ -154,7 +149,6 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
           while (j < lines.length) {
             const nextTrimmed = lines[j].trim();
             if (!nextTrimmed || nextTrimmed.match(headerRegex)) break;
-            // Sub-values are typically indented or start with a variable/bullet
             if (nextTrimmed.startsWith('-') || nextTrimmed.startsWith('•') || /^[A-Za-z_\d\s()]+\s*=/.test(nextTrimmed) || /^\w/.test(nextTrimmed)) {
               subLines.push(nextTrimmed.replace(/^[-•]\s*/, ''));
               j++;
@@ -164,7 +158,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
           }
           if (subLines.length > 0) {
             elements.push(
-              <div key={i} className={`p-4 rounded-xl border transition-all duration-300 ${style.card}`}>
+              <div key={i} className={`p-4 rounded-xl border transition-all duration-300 text-left ${style.card}`}>
                 <div className="flex items-center gap-2 mb-3">
                   {style.icon && <span className="text-sm">{style.icon}</span>}
                   <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg ${style.badge}`}>
@@ -174,7 +168,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 <div className="space-y-1.5 ml-1">
                   {subLines.map((sl, si) => (
                     <div key={si} className="flex items-start gap-2.5">
-                      <span className="text-zinc-600 mt-1 text-[8px]">●</span>
+                      <span className="text-zinc-650 mt-1 text-[8px]">●</span>
                       <span className={`text-sm font-mono ${style.text}`}>{sl}</span>
                     </div>
                   ))}
@@ -187,7 +181,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         }
 
         elements.push(
-          <div key={i} className={`p-4 rounded-xl border transition-all duration-300 ${style.card}`}>
+          <div key={i} className={`p-4 rounded-xl border transition-all duration-300 text-left ${style.card}`}>
             <div className="flex items-start gap-2">
               {style.icon && <span className="text-sm mt-0.5">{style.icon}</span>}
               <div className="flex-1">
@@ -203,9 +197,8 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         continue;
       }
 
-      // Math/equation lines — render in monospace accent card
+      // Math/equation lines
       if (isMathLine(trimmed)) {
-        // Collect consecutive math lines
         const mathLines: string[] = [trimmed];
         let j = i + 1;
         while (j < lines.length) {
@@ -219,15 +212,14 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         }
 
         elements.push(
-          <div key={i} className="bg-zinc-950/80 border border-zinc-800/70 rounded-xl p-4 font-mono text-sm space-y-1">
+          <div key={i} className="bg-[#1D2230]/50 border border-zinc-800 rounded-xl p-4 font-mono text-sm space-y-1 text-left">
             {mathLines.map((ml, mi) => {
-              // Highlight the arrow => parts
               const parts = ml.split(/(=>)/g);
               return (
-                <div key={mi} className="text-violet-300/90 flex items-center gap-1 flex-wrap">
+                <div key={mi} className="text-[#8B7FFF] flex items-center gap-1 flex-wrap font-mono">
                   {parts.map((part, pi) => (
                     part === '=>'
-                      ? <span key={pi} className="text-indigo-400 font-bold mx-1">→</span>
+                      ? <span key={pi} className="text-[#6D5DFC] font-bold mx-1">→</span>
                       : <span key={pi}>{part}</span>
                   ))}
                 </div>
@@ -239,7 +231,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         continue;
       }
 
-      // Numbered sub-steps — render as mini timeline
+      // Numbered sub-steps
       const numStep = isNumberedStep(trimmed);
       if (numStep) {
         const steps: { marker: string; content: string }[] = [numStep];
@@ -257,15 +249,14 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
         elements.push(
           <div key={i} className="space-y-0 ml-1">
             {steps.map((s, si) => (
-              <div key={si} className="flex items-start gap-3 relative">
-                {/* Timeline connector */}
+              <div key={si} className="flex items-start gap-3 relative text-left">
                 {si < steps.length - 1 && (
                   <div className="absolute left-[13px] top-7 w-px h-[calc(100%-4px)] bg-zinc-800" />
                 )}
-                <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold rounded-lg mt-0.5 relative z-10">
+                <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-[#1D2230] border border-zinc-800 text-[#B8C0CC] text-[10px] font-bold rounded-lg mt-0.5 relative z-10">
                   {s.marker.replace(/[().\s]/g, '')}
                 </span>
-                <p className="text-sm text-zinc-300 leading-relaxed pt-1 pb-3">{s.content}</p>
+                <p className="text-sm text-[#B8C0CC] leading-relaxed pt-1 pb-3">{s.content}</p>
               </div>
             ))}
           </div>
@@ -277,8 +268,8 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
       // Bullet points
       if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ')) {
         elements.push(
-          <div key={i} className="flex gap-2.5 ml-3 text-zinc-400">
-            <span className="text-indigo-500/60 select-none font-bold mt-0.5 text-xs">▸</span>
+          <div key={i} className="flex gap-2.5 ml-3 text-[#B8C0CC] text-left">
+            <span className="text-[#6D5DFC] select-none font-bold mt-0.5 text-xs">▸</span>
             <span className="text-sm leading-relaxed">{trimmed.replace(/^[-•*]\s+/, '')}</span>
           </div>
         );
@@ -288,7 +279,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
 
       // Default plain text line
       elements.push(
-        <div key={i} className="text-zinc-400 text-sm leading-relaxed pl-1">{line}</div>
+        <div key={i} className="text-[#8B93A7] text-sm leading-relaxed pl-1 text-left">{line}</div>
       );
       i++;
     }
@@ -308,7 +299,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
      }).join('\n');
 
      return (
-        <pre className="font-mono text-xs text-zinc-300 bg-zinc-950 w-full p-5 rounded-xl border border-zinc-800/80 overflow-x-auto whitespace-pre-wrap leading-relaxed select-all">
+        <pre className="font-mono text-xs text-[#B8C0CC] bg-[#0F1117] w-full p-5 rounded-xl border border-zinc-800 overflow-x-auto whitespace-pre-wrap leading-relaxed text-left select-all">
             {formatted}
         </pre>
      );
@@ -317,10 +308,10 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
   return (
     <div ref={containerRef} className="space-y-6">
       {/* Main container card */}
-      <div className="bg-zinc-900/50 rounded-3xl border border-zinc-800/80 shadow-2xl overflow-hidden">
+      <div className="bg-[#161A23] rounded-2xl border border-zinc-800 shadow-xl overflow-hidden">
         
         {/* Sticky Header Toolbar */}
-        <div className="sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-xl px-6 sm:px-8 py-5 border-b border-zinc-800/60">
+        <div className="sticky top-0 z-30 bg-[#161A23]/95 backdrop-blur-md px-6 sm:px-8 py-5 border-b border-zinc-800/80">
           
           {/* Top row: Status + Actions */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -330,13 +321,13 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/15 text-emerald-400 flex items-center justify-center"
+                className="bg-[#22C55E]/10 p-2.5 rounded-xl border border-[#22C55E]/20 text-[#22C55E] flex items-center justify-center"
               >
                 <i className="ri-checkbox-circle-fill text-xl"></i>
               </motion.div>
-              <div>
-                <h2 className="text-base font-bold text-zinc-100 font-display tracking-tight">Answers Prepared</h2>
-                <p className="text-[11px] text-zinc-500 font-medium">{qaPairs.length} questions extracted</p>
+              <div className="text-left">
+                <h2 className="text-base font-bold text-white font-display tracking-tight">Answers Prepared</h2>
+                <p className="text-[11px] text-[#8B93A7] font-medium">{qaPairs.length} questions extracted</p>
               </div>
             </div>
 
@@ -345,7 +336,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onReset}
-                className="px-3.5 py-2.5 text-[11px] font-bold text-zinc-400 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 hover:text-zinc-200 rounded-xl focus:outline-none flex items-center transition-all"
+                className="px-3.5 py-2.5 text-[11px] font-bold text-[#8B93A7] bg-[#1D2230] hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 hover:text-white rounded-xl focus:outline-none flex items-center transition-all cursor-pointer"
               >
                 <i className="ri-arrow-left-line text-sm mr-1.5"></i>
                 Reset
@@ -354,7 +345,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onPreview}
-                className="px-3.5 py-2.5 text-[11px] font-bold text-indigo-400 bg-indigo-950/30 hover:bg-indigo-950/60 border border-indigo-900/50 rounded-xl focus:outline-none flex items-center transition-all"
+                className="px-3.5 py-2.5 text-[11px] font-bold text-[#8B7FFF] bg-[#6D5DFC]/10 hover:bg-[#6D5DFC]/20 border border-[#6D5DFC]/20 rounded-xl focus:outline-none flex items-center transition-all cursor-pointer"
                 title="Preview PDF"
               >
                 <i className="ri-eye-line text-sm mr-1.5"></i>
@@ -364,7 +355,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onDownload}
-                className="px-4 py-2.5 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none shadow-md shadow-indigo-600/10 flex items-center transition-all"
+                className="px-4 py-2.5 text-[11px] font-bold text-white bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 rounded-xl focus:outline-none shadow-md shadow-[#6D5DFC]/15 flex items-center transition-all cursor-pointer"
                 title="Download PDF"
               >
                 <i className="ri-file-download-line text-sm mr-1.5"></i>
@@ -376,7 +367,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
           {/* Bottom row: View mode switcher + Expand/Collapse */}
           <div className="flex items-center justify-between mt-4 gap-3">
             {/* View Mode Switcher */}
-            <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800/60 flex items-center space-x-1 flex-shrink-0">
+            <div className="bg-[#0F1117] p-1 rounded-xl border border-zinc-800/80 flex items-center space-x-1 flex-shrink-0">
                {[
                  { id: 'structured', iconClass: 'ri-layout-grid-line', label: 'Structured' },
                  { id: 'plain', iconClass: 'ri-align-left', label: 'Plain' },
@@ -385,16 +376,16 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                  <button
                     key={opt.id}
                     onClick={() => setViewMode(opt.id as ViewMode)}
-                    className={`relative flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-[11px] font-bold tracking-tight transition-colors ${
+                    className={`relative flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-[11px] font-bold tracking-tight transition-colors cursor-pointer ${
                       viewMode === opt.id 
-                        ? 'text-indigo-400' 
-                        : 'text-zinc-500 hover:text-zinc-300'
+                        ? 'text-[#8B7FFF]' 
+                        : 'text-[#8B93A7] hover:text-[#B8C0CC]'
                     }`}
                  >
                     {viewMode === opt.id && (
                       <motion.div
                         layoutId="activeViewTab"
-                        className="absolute inset-0 bg-zinc-900 rounded-lg shadow-sm border border-zinc-800/85"
+                        className="absolute inset-0 bg-[#1D2230] rounded-lg shadow-sm border border-zinc-800"
                         transition={{ type: "spring", stiffness: 420, damping: 28 }}
                       />
                     )}
@@ -407,7 +398,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
             {/* Expand/Collapse All */}
             <button
               onClick={toggleAll}
-              className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 rounded-lg hover:bg-zinc-900/50 flex-shrink-0"
+              className="flex items-center gap-1.5 text-[11px] font-bold text-[#8B93A7] hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-[#1D2230] flex-shrink-0 cursor-pointer"
             >
               <i className="ri-arrow-up-down-line text-sm"></i>
               <span>{allExpanded ? 'Collapse All' : 'Expand All'}</span>
@@ -415,10 +406,10 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
           </div>
         </div>
 
-        {/* Questions Body — no max-height constraint, full page flow */}
-        <div className="divide-y divide-zinc-800/50">
+        {/* Questions Body */}
+        <div className="divide-y divide-zinc-800/60">
           {qaPairs.length === 0 ? (
-            <div className="p-16 text-center text-zinc-500 font-medium">
+            <div className="p-16 text-center text-[#8B93A7] font-medium">
               No questions were extracted. Please ensure your PDF contains high-contrast text layout.
             </div>
           ) : (
@@ -431,7 +422,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: Math.min(idx * 0.03, 0.3) }}
                   className={`transition-colors duration-200 ${
-                    isExpanded ? 'bg-zinc-900/20' : 'bg-transparent hover:bg-zinc-900/10'
+                    isExpanded ? 'bg-[#1D2230]/10' : 'bg-transparent hover:bg-[#1D2230]/5'
                   }`}
                 >
                   {/* Question Header */}
@@ -439,20 +430,19 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                     onClick={() => toggleExpand(idx)}
                     className="px-6 sm:px-8 py-5 flex items-start gap-4 cursor-pointer select-none group"
                   >
-                    {/* Question Number Badge */}
                     <div className="flex flex-col items-center flex-shrink-0">
-                      <span className={`w-9 h-9 flex items-center justify-center font-extrabold rounded-xl text-xs shadow-sm transition-all duration-200 ${
+                      <span className={`w-9 h-9 flex items-center justify-center font-bold rounded-xl text-xs transition-all duration-200 ${
                         isExpanded 
-                          ? 'bg-indigo-600 text-white shadow-indigo-600/20 scale-105' 
-                          : 'bg-indigo-950/50 text-indigo-400 border border-indigo-900/40 group-hover:bg-indigo-950/80'
+                          ? 'bg-[#6D5DFC] text-white shadow-md shadow-[#6D5DFC]/10' 
+                          : 'bg-[#1D2230] text-[#B8C0CC] border border-zinc-800 group-hover:bg-zinc-800'
                       }`}>
                         {idx + 1}
                       </span>
                     </div>
                     
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-left">
                       <h3 className={`font-bold text-sm tracking-tight leading-relaxed transition-colors ${
-                        isExpanded ? 'text-zinc-100' : 'text-zinc-300 group-hover:text-zinc-100'
+                        isExpanded ? 'text-white' : 'text-[#B8C0CC] group-hover:text-white'
                       }`}>
                         {pair.question}
                       </h3>
@@ -460,8 +450,8 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
 
                     <div className={`flex-shrink-0 mt-1 transition-all duration-200 p-1.5 rounded-lg flex items-center justify-center ${
                       isExpanded 
-                        ? 'text-indigo-400 bg-indigo-950/40 border border-indigo-900/30' 
-                        : 'text-zinc-600 bg-zinc-900 border border-zinc-800 group-hover:text-zinc-400'
+                        ? 'text-[#8B7FFF] bg-[#6D5DFC]/10 border border-[#6D5DFC]/20' 
+                        : 'text-[#8B93A7] bg-[#1D2230] border border-zinc-800 group-hover:text-[#B8C0CC]'
                     }`}>
                       {isExpanded ? <i className="ri-chevron-down-line text-sm"></i> : <i className="ri-chevron-right-line text-sm"></i>}
                     </div>
@@ -478,23 +468,21 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                         className="overflow-hidden"
                       >
                         <div className="px-6 sm:px-8 pb-6 pl-[4.25rem] sm:pl-[4.75rem] space-y-4">
-                          {/* Visual Assets rendering */}
                           {pair.image && (
-                            <div className="p-4 bg-zinc-950 border border-zinc-800/80 rounded-2xl flex justify-center shadow-sm max-w-lg">
+                            <div className="p-4 bg-[#0F1117] border border-zinc-800 rounded-2xl flex justify-center shadow-sm max-w-lg">
                               <img src={pair.image} alt="Extracted content asset" className="max-w-full max-h-56 object-contain rounded-xl" />
                             </div>
                           )}
 
                           {!pair.image && pair.diagram && (
-                            <div className="p-4 bg-zinc-950 border border-zinc-800/80 rounded-2xl flex justify-center shadow-sm max-w-lg group/dia hover:border-indigo-900/50 transition-colors" title="Interactive Diagram">
+                            <div className="p-4 bg-[#0F1117] border border-zinc-800 rounded-2xl flex justify-center shadow-sm max-w-lg group/dia hover:border-[#6D5DFC]/30 transition-colors" title="Interactive Diagram">
                                <div dangerouslySetInnerHTML={{ __html: pair.diagram }} className="max-w-full max-h-56 overflow-auto" />
                             </div>
                           )}
 
-                          {/* Answer Content */}
-                          <div className="bg-zinc-900/30 border border-zinc-800/60 p-5 sm:p-6 rounded-2xl shadow-sm">
+                          <div className="bg-[#1D2230]/20 border border-zinc-800/85 p-5 sm:p-6 rounded-2xl shadow-sm">
                             {viewMode === 'plain' && (
-                              <p className="whitespace-pre-wrap font-sans text-sm text-zinc-300 leading-relaxed">
+                              <p className="whitespace-pre-wrap font-sans text-sm text-[#B8C0CC] leading-relaxed text-left">
                                 {pair.answer}
                               </p>
                             )}
@@ -522,7 +510,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 w-11 h-11 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-600/20 transition-colors"
+            className="fixed bottom-8 right-8 z-50 w-11 h-11 flex items-center justify-center bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 text-white rounded-full shadow-lg shadow-[#6D5DFC]/20 transition-colors cursor-pointer"
             title="Back to top"
           >
             <i className="ri-arrow-up-line text-xl"></i>
