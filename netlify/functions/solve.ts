@@ -131,13 +131,41 @@ const handler: Handler = async (event: HandlerEvent) => {
       },
     });
 
+    // Check for empty or safety-blocked responses
     if (!response.text) {
-      throw new Error("Empty response from Gemini model.");
+      const candidates = (response as any).candidates;
+      const feedback = (response as any).promptFeedback;
+      if (feedback?.blockReason) {
+        return { statusCode: 422, headers, body: JSON.stringify({ error: `The AI model blocked the request due to: ${feedback.blockReason}. Please try a different document.` }) };
+      }
+      if (candidates?.[0]?.finishReason && candidates[0].finishReason !== 'STOP') {
+        return { statusCode: 422, headers, body: JSON.stringify({ error: `The AI model stopped processing due to: ${candidates[0].finishReason}.` }) };
+      }
+      return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an empty response. This is usually temporary — please try again." }) };
     }
 
-    const parsed = JSON.parse(response.text);
+    // Safe JSON parsing with partial salvage
+    let parsed: any;
+    try {
+      parsed = JSON.parse(response.text);
+    } catch {
+      const rawText = response.text || "";
+      const lastBracket = rawText.lastIndexOf("}");
+      if (lastBracket > 0) {
+        const salvaged = rawText.substring(0, lastBracket + 1) + "]";
+        try {
+          parsed = JSON.parse(salvaged);
+          console.warn("Netlify: Salvaged truncated JSON response from Gemini.");
+        } catch {
+          return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned a malformed response. Try a smaller PDF or try again." }) };
+        }
+      } else {
+        return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an unparseable response. Please try again." }) };
+      }
+    }
+
     if (!Array.isArray(parsed)) {
-      throw new Error("Invalid response format from Gemini model.");
+      return { statusCode: 502, headers, body: JSON.stringify({ error: "The AI model returned an unexpected response format. Please try again." }) };
     }
 
     const cleaned = parsed
@@ -149,10 +177,23 @@ const handler: Handler = async (event: HandlerEvent) => {
         image: String(item.image || "").trim(),
       }));
 
+    if (cleaned.length === 0) {
+      return { statusCode: 422, headers, body: JSON.stringify({ error: "The AI could not find any questions in this document. Please ensure the PDF contains readable question text." }) };
+    }
+
     return { statusCode: 200, headers, body: JSON.stringify({ result: cleaned }) };
   } catch (e: any) {
     console.error("Netlify Function Error:", e);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: e.message || "An error occurred." }) };
+    const message = e.message || "An error occurred.";
+
+    if (message.includes("API key") || message.includes("403") || message.includes("401")) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: "Invalid API key. Please check your Gemini API key." }) };
+    }
+    if (message.includes("429") || message.includes("Resource has been exhausted") || message.includes("quota")) {
+      return { statusCode: 429, headers, body: JSON.stringify({ error: "API rate limit exceeded. Please wait a moment and try again." }) };
+    }
+
+    return { statusCode: 500, headers, body: JSON.stringify({ error: message }) };
   }
 };
 

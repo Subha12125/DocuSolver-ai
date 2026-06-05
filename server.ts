@@ -62,8 +62,8 @@ async function startServer() {
   const app = express();
 
   app.use(cors());
-  app.use(express.json({ limit: "15mb" }));
-  app.use(express.urlencoded({ limit: "15mb", extended: true }));
+  app.use(express.json({ limit: "25mb" }));
+  app.use(express.urlencoded({ limit: "25mb", extended: true }));
 
   app.get("/api/health", (req, res) => {
     res.json({
@@ -161,7 +161,9 @@ async function startServer() {
         - "image": optional Base64 image data URI.
       `;
 
-      const response = await ai.models.generateContent({
+      // Wrap Gemini call with a 90-second timeout
+      const GEMINI_TIMEOUT_MS = 90_000;
+      const geminiPromise = ai.models.generateContent({
         model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
         contents: [
           {
@@ -205,13 +207,71 @@ async function startServer() {
         },
       });
 
-      if (!response.text) {
-        throw new Error("Empty response received from Gemini model.");
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("__TIMEOUT__")), GEMINI_TIMEOUT_MS)
+      );
+
+      let response;
+      try {
+        response = await Promise.race([geminiPromise, timeoutPromise]);
+      } catch (raceErr: any) {
+        if (raceErr.message === "__TIMEOUT__") {
+          return res.status(504).json({
+            error: "The AI model took too long to respond (90s timeout). Try a smaller PDF or try again."
+          });
+        }
+        throw raceErr;
       }
 
-      const parsed = JSON.parse(response.text);
+      // Check for empty or safety-blocked responses
+      if (!response.text) {
+        // Try to extract block reason
+        const candidates = (response as any).candidates;
+        const feedback = (response as any).promptFeedback;
+        if (feedback?.blockReason) {
+          return res.status(422).json({
+            error: `The AI model blocked the request due to: ${feedback.blockReason}. Please try a different document.`
+          });
+        }
+        if (candidates?.[0]?.finishReason && candidates[0].finishReason !== 'STOP') {
+          return res.status(422).json({
+            error: `The AI model stopped processing due to: ${candidates[0].finishReason}. The document may contain content that triggers safety filters.`
+          });
+        }
+        return res.status(502).json({
+          error: "The AI model returned an empty response. This is usually a temporary issue — please try again."
+        });
+      }
+
+      // Safe JSON parsing with partial salvage
+      let parsed: any;
+      try {
+        parsed = JSON.parse(response.text);
+      } catch (parseErr: any) {
+        // Attempt to salvage truncated JSON by finding last valid array boundary
+        const rawText = response.text || "";
+        const lastBracket = rawText.lastIndexOf("}");
+        if (lastBracket > 0) {
+          const salvaged = rawText.substring(0, lastBracket + 1) + "]";
+          try {
+            parsed = JSON.parse(salvaged);
+            console.warn("Server: Salvaged truncated JSON response from Gemini.");
+          } catch {
+            return res.status(502).json({
+              error: "The AI model returned a malformed response. This can happen with very large documents — try a smaller PDF or try again."
+            });
+          }
+        } else {
+          return res.status(502).json({
+            error: "The AI model returned an unparseable response. Please try again."
+          });
+        }
+      }
+
       if (!Array.isArray(parsed)) {
-        throw new Error("Invalid response format received from Gemini model.");
+        return res.status(502).json({
+          error: "The AI model returned an unexpected response format. Please try again."
+        });
       }
 
       const cleaned = parsed
@@ -227,10 +287,27 @@ async function startServer() {
           image: String(item.image || "").trim(),
         }));
 
+      if (cleaned.length === 0) {
+        return res.status(422).json({
+          error: "The AI could not find any questions in this document. Please ensure the PDF contains readable question text."
+        });
+      }
+
       res.json({ result: cleaned });
     } catch (e: any) {
       console.error("Server Solve Error:", e);
-      res.status(500).json({ error: e.message || "An error occurred during content generation." });
+      const status = e.status || e.httpStatusCode || 500;
+      const message = e.message || "An error occurred during content generation.";
+
+      // Detect common Gemini SDK errors
+      if (message.includes("API key") || message.includes("403") || message.includes("401")) {
+        return res.status(401).json({ error: "Invalid API key. Please check your Gemini API key and ensure it has active credits." });
+      }
+      if (message.includes("429") || message.includes("Resource has been exhausted") || message.includes("quota")) {
+        return res.status(429).json({ error: "API rate limit exceeded. Please wait a moment and try again, or check your API key quota at https://aistudio.google.com/." });
+      }
+
+      res.status(status >= 400 && status < 600 ? status : 500).json({ error: message });
     }
   });
 

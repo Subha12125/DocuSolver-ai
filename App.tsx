@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import FileUpload from './components/FileUpload';
 import ProcessingIndicator from './components/ProcessingIndicator';
@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [isCheckingConfig, setIsCheckingConfig] = useState(true);
+  const lastFileRef = useRef<File | null>(null);
 
   const checkConfig = async () => {
     try {
@@ -102,6 +103,9 @@ const App: React.FC = () => {
         status: ProcessingStatus.READING_PDF,
         message: 'Reading document structure...'
       });
+
+      // Store file reference for retry
+      lastFileRef.current = file;
 
       // Convert file to base64 for Gemini
       const base64Data = await fileToBase64(file);
@@ -181,8 +185,17 @@ const App: React.FC = () => {
 
   const handleReset = () => {
     setQaPairs([]);
+    lastFileRef.current = null;
     setIsCheckingConfig(true);
     checkConfig();
+  };
+
+  const handleRetry = () => {
+    if (lastFileRef.current) {
+      handleFileSelect(lastFileRef.current);
+    } else {
+      handleReset();
+    }
   };
 
   if (isCheckingConfig) {
@@ -843,12 +856,23 @@ const App: React.FC = () => {
             <p className="text-[#B8C0CC] text-sm mb-10 max-w-sm mx-auto leading-relaxed">
               {processingState.message}
             </p>
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4">
+              {lastFileRef.current && (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleRetry}
+                  className="px-8 py-3.5 bg-[#6D5DFC] text-white text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-[#6D5DFC]/90 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <i className="ri-refresh-line text-base leading-none"></i>
+                  Try Again
+                </motion.button>
+              )}
                <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={handleReset}
-                className="px-8 py-3.5 bg-[#6D5DFC] text-white text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-[#6D5DFC]/90 transition-all cursor-pointer"
+                className="px-8 py-3.5 bg-zinc-800/60 text-white border border-zinc-700/50 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-zinc-800 transition-all cursor-pointer"
               >
                 Reset Engine
               </motion.button>
