@@ -242,7 +242,7 @@ const App: React.FC = () => {
                 {!apiKey ? (
                   <form
                     onSubmit={handleApiKeySubmit}
-                    className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden"
+                    className="w-full max-w-xl mx-auto bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden animate-neon-glow animate-light-sweep"
                   >
                     <div className="flex items-center gap-3 mb-5">
                       <div className="bg-indigo-950/40 border border-indigo-900/40 p-2.5 rounded-2xl text-indigo-400 flex items-center justify-center">

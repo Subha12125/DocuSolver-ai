@@ -10,14 +10,7 @@ const Header: React.FC = () => {
       className="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-5xl mx-auto print:hidden"
     >
       <header 
-        className="w-full rounded-[24px] h-16 flex items-center justify-between px-6 transition-all duration-300"
-        style={{
-          background: 'rgba(12, 12, 16, 0.5)',
-          backdropFilter: 'blur(24px) saturate(190%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(190%)',
-          border: '1px solid rgba(255, 255, 255, 0.09)',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.15)',
-        }}
+        className="w-full rounded-[24px] h-16 flex items-center justify-between px-6 transition-all duration-300 liquid-glass-header animate-light-sweep"
       >
         <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => window.location.reload()}>
           <div className="bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-500 p-2 rounded-xl shadow-xl shadow-indigo-500/10 hover:shadow-indigo-500/25 transition-all duration-300 transform group-hover:scale-105 active:scale-95 flex items-center justify-center">
