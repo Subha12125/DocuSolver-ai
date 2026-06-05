@@ -100,7 +100,7 @@ DocuSolver-ai/
 
 ## 🌐 Deploy to Netlify
 
-This project is configured for one-click Netlify deployment:
+This project is configured for one-click Netlify deployment. **No server API key needed** — users paste their own Gemini API key in the app UI.
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Subha12125/DocuSolver-ai)
 
@@ -113,17 +113,18 @@ This project is configured for one-click Netlify deployment:
    - **Build command:** `npm run build`
    - **Publish directory:** `dist`
    - **Functions directory:** `netlify/functions`
-5. Add environment variable: `GEMINI_API_KEY` = your API key
-6. Click **Deploy**
+5. Click **Deploy** — that's it! No environment variables needed.
+
+> 💡 **Users provide their own API key** in the app interface. Get one free at [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 ---
 
-## 🔑 Environment Variables
+## 🔑 API Key
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `GEMINI_MODEL` | No | Model override (default: `gemini-2.5-flash`) |
+| Where | How |
+|-------|-----|
+| **Deployed (Netlify)** | Users paste their own Gemini API key in the app UI |
+| **Local dev** | Either paste in UI, or set `GEMINI_API_KEY` in `.env` for auto-fill |
 
 ---
 

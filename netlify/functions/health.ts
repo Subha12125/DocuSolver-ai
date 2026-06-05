@@ -10,7 +10,7 @@ const handler: Handler = async () => {
     body: JSON.stringify({
       status: "ok",
       storage: "none",
-      apiKeyConfigured: !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()),
+      apiKeyConfigured: false, // Users bring their own key
     }),
   };
 };

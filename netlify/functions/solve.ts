@@ -44,12 +44,9 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     const boundedWordLimit = Math.min(Math.max(Number(wordLimit) || 150, 50), 500);
-    let apiKey = typeof requestApiKey === "string" ? requestApiKey.trim() : "";
+    const apiKey = typeof requestApiKey === "string" ? requestApiKey.trim() : "";
     if (!apiKey || apiKey === "__SERVER_KEY__") {
-      apiKey = (process.env.GEMINI_API_KEY || "").trim();
-    }
-    if (!apiKey) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Gemini API key is not configured." }) };
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Please provide your Gemini API key. Get one free at https://aistudio.google.com/app/apikey" }) };
     }
 
     // Dynamic import to avoid bundling issues
