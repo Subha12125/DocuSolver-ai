@@ -98,6 +98,10 @@ const handler: Handler = async (event: HandlerEvent) => {
       You are an expert academic document analyzer.
       Analyze the provided PDF and identify every distinct question, including questions in scanned pages, images, charts, and diagrams.
 
+      CRITICAL QUESTION EXTRACTION RULE:
+      - You MUST identify and extract EVERY single question present in the document. Do not skip or omit any question.
+      - If the document contains many questions, prioritize extracting all of them and make the answers concise/compact to fit within the token budget.
+
       LANGUAGE RULES:
       - Extract the "question" field as faithfully as possible from the uploaded PDF.
       - Write the "answer" field in ${selectedLanguage.label}.
@@ -154,6 +158,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       config: {
         thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: "application/json",
+        maxOutputTokens: 8192,
         responseSchema: {
           type: Type.ARRAY,
           items: {
