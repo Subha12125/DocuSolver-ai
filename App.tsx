@@ -5,7 +5,7 @@ import ProcessingIndicator from './components/ProcessingIndicator';
 import QAView from './components/QAView';
 import { ToastContainer, ToastMessage, ToastType } from './components/Toast';
 import { fileToBase64, generateAnswerPDF, openPDFPreview } from './services/pdfService';
-import { generateAnswers } from './services/geminiService';
+import { extractQuestions, solveSingleQuestion } from './services/geminiService';
 import { QAPair, ProcessingState, ProcessingStatus } from './types';
 import { motion } from 'motion/react';
 
@@ -108,15 +108,46 @@ const App: React.FC = () => {
       // Convert file to base64 for Gemini
       const base64Data = await fileToBase64(file);
 
-      // Step 2: Analyze & Generate
+      // Step 2: Extract Questions List
       setProcessingState({
         status: ProcessingStatus.ANALYZING,
-        message: 'Analyzing content...'
+        message: 'Locating and extracting all questions from document...'
       });
 
-      // Gemini Analysis
-      const generatedPairs = await generateAnswers(base64Data, apiKey, wordLimit, language);
-      setQaPairs(generatedPairs);
+      const questionsList = await extractQuestions(base64Data, apiKey);
+
+      if (!questionsList || questionsList.length === 0) {
+        throw new Error("No questions detected in the document. Please verify the PDF contains readable questions.");
+      }
+
+      setQaPairs([]); // Clear previous pairs
+
+      // Step 3: Solve Questions One-by-One
+      const totalQuestions = questionsList.length;
+      const solvedPairs: QAPair[] = [];
+
+      for (let i = 0; i < totalQuestions; i++) {
+        const questionText = questionsList[i];
+        
+        setProcessingState({
+          status: ProcessingStatus.ANALYZING,
+          message: `Solving question ${i + 1} of ${totalQuestions}: "${questionText.length > 55 ? questionText.substring(0, 55) + '...' : questionText}"`
+        });
+
+        try {
+          const solvedPair = await solveSingleQuestion(base64Data, apiKey, questionText, wordLimit, language);
+          solvedPairs.push(solvedPair);
+          setQaPairs([...solvedPairs]); // Update state dynamically
+        } catch (solveErr: any) {
+          console.error(`Failed to solve question ${i + 1}:`, solveErr);
+          const errorPair: QAPair = {
+            question: questionText,
+            answer: `❌ Failed to generate solution: ${solveErr.message || 'Transient server error'}.`
+          };
+          solvedPairs.push(errorPair);
+          setQaPairs([...solvedPairs]);
+        }
+      }
 
       setProcessingState({ status: ProcessingStatus.COMPLETE });
       addToast("Analysis complete!", 'success');
@@ -823,10 +854,31 @@ const App: React.FC = () => {
 
         {(processingState.status === ProcessingStatus.READING_PDF || 
           processingState.status === ProcessingStatus.ANALYZING) && (
-          <ProcessingIndicator 
-            status={processingState.status} 
-            message={processingState.message} 
-          />
+          <div className="space-y-12">
+            <ProcessingIndicator 
+              status={processingState.status} 
+              message={processingState.message} 
+            />
+            {qaPairs.length > 0 && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#6D5DFC]/10 border border-[#6D5DFC]/20 rounded-full text-[10px] font-bold text-[#8B7FFF] uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8B7FFF] animate-ping" />
+                    Answers Streaming In Real-Time
+                  </span>
+                </div>
+                <div className="opacity-90">
+                  <QAView 
+                    qaPairs={qaPairs} 
+                    onDownload={handleDownload} 
+                    onPreview={handlePreview}
+                    onReset={handleReset} 
+                    isSolving={true}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {processingState.status === ProcessingStatus.ERROR && (

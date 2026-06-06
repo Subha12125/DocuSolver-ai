@@ -97,6 +97,27 @@ function trySalvageJSON(text: string): any {
   }
 }
 
+function trySalvageJSONSingle(text: string): any {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    let trimmed = text.trim();
+    if (!trimmed.startsWith("{")) {
+      throw err;
+    }
+    let idx = trimmed.lastIndexOf("}");
+    while (idx !== -1) {
+      const candidate = trimmed.substring(0, idx + 1);
+      try {
+        return JSON.parse(candidate);
+      } catch {
+        idx = trimmed.lastIndexOf("}", idx - 1);
+      }
+    }
+    throw err;
+  }
+}
+
 async function startServer() {
   const app = express();
 
@@ -112,9 +133,103 @@ async function startServer() {
     });
   });
 
+  app.post("/api/extract", async (req, res) => {
+    try {
+      const { pdfBase64, apiKey: requestApiKey } = req.body;
+
+      if (!pdfBase64 || typeof pdfBase64 !== "string") {
+        return res.status(400).json({ error: "Missing pdfBase64 in request body" });
+      }
+
+      let apiKey = typeof requestApiKey === "string" ? requestApiKey.trim() : "";
+      if (!apiKey || apiKey === "__SERVER_KEY__") {
+        apiKey = (process.env.GEMINI_API_KEY || "").trim();
+      }
+      if (!apiKey) {
+        return res.status(400).json({
+          error: "Gemini API key is not configured. Add GEMINI_API_KEY to your .env file.",
+        });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "docusolver-ai",
+          },
+        },
+      });
+
+      const prompt = `
+        You are an expert academic document analyzer.
+        Analyze the provided PDF and identify every distinct academic question present.
+        Return a JSON array of strings, where each string is the extracted question text.
+        Extract all questions completely and accurately. Do not truncate, summarize, or skip any question.
+      `;
+
+      const geminiPromise = ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        contents: [
+          {
+            inlineData: {
+              mimeType: "application/pdf",
+              data: pdfBase64,
+            },
+          },
+          {
+            text: prompt,
+          },
+        ],
+        config: {
+          thinkingConfig: { thinkingBudget: 0 },
+          responseMimeType: "application/json",
+          maxOutputTokens: 8192,
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.STRING,
+            },
+          },
+        },
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("GATEWAY_TIMEOUT: Gemini API did not respond within 90 seconds.")), 90000)
+      );
+
+      const response = await Promise.race([geminiPromise, timeoutPromise]);
+
+      if (!response.text) {
+        checkResponseSafety(response);
+        throw new Error("Empty response received from Gemini model.");
+      }
+
+      const parsed = trySalvageJSON(response.text);
+      if (!Array.isArray(parsed)) {
+        throw new Error("Invalid response format received from Gemini model.");
+      }
+
+      const questions = parsed.map((q: any) => String(q || "").trim()).filter(Boolean);
+
+      res.json({ questions });
+    } catch (e: any) {
+      console.error("Server Extract Error:", e);
+      const msg = e.message || "";
+      if (msg.includes("GATEWAY_TIMEOUT")) {
+        res.status(504).json({ error: msg });
+      } else if (msg.includes("SAFETY_BLOCK")) {
+        res.status(422).json({ error: msg });
+      } else if (msg.includes("API Key") || msg.includes("403") || msg.includes("401")) {
+        res.status(401).json({ error: msg });
+      } else {
+        res.status(500).json({ error: msg || "An error occurred during question extraction." });
+      }
+    }
+  });
+
   app.post("/api/solve", async (req, res) => {
     try {
-      const { pdfBase64, apiKey: requestApiKey, wordLimit = 150, language = "english" } = req.body;
+      const { pdfBase64, apiKey: requestApiKey, wordLimit = 150, language = "english", questionToSolve } = req.body;
 
       if (!pdfBase64 || typeof pdfBase64 !== "string") {
         return res.status(400).json({ error: "Missing pdfBase64 in request body" });
@@ -141,111 +256,167 @@ async function startServer() {
       });
 
       const selectedLanguage = getLanguageInstruction(language);
-      const prompt = `
-        You are an expert academic document analyzer.
-        Analyze the provided PDF and identify every distinct question, including questions in scanned pages, images, charts, and diagrams.
 
-        CRITICAL QUESTION EXTRACTION RULE:
-        - You MUST identify and extract EVERY single question present in the document. Do not skip or omit any question.
-        - If the document contains many questions, prioritize extracting all of them and make the answers concise/compact to fit within the token budget.
+      let prompt = "";
+      let responseSchema: any;
 
-        LANGUAGE RULES:
-        - Extract the "question" field as faithfully as possible from the uploaded PDF. If the original question is not English, keep it in the source language unless the text is unreadable.
-        - Write the "answer" field in ${selectedLanguage.label}.
-        - ${selectedLanguage.instruction}
+      if (questionToSolve) {
+        prompt = `
+          You are an expert academic document analyzer.
+          Analyze the provided PDF and solve the following specific question:
+          "${questionToSolve}"
 
-        ANSWER STYLE:
-        - Keep each answer within approximately ${boundedWordLimit} words.
-        - ALWAYS write answers POINTWISE — every key point on its own line starting with "- ".
-        - Never write long paragraphs. Break every idea into separate bullet points.
-        - Start directly with the answer. No filler, no "Concept:" block.
-        - Use plain text only. No Markdown tables, LaTeX blocks, or code fences.
-        - Replace fragile math symbols with printable text: "pi", "theta", "degrees", "sqrt(x)", "integral".
+          Use the PDF context to solve it accurately.
 
-        FORMATTING RULES FOR ALL ANSWERS:
-        Use these section headers on their own line when applicable:
-        - "Given:" to list known values (one per line, e.g. "Mass (m) = 10 kg")
-        - "Find:" to state what needs to be determined
-        - "Formula:" to state the formula (e.g. "F = m × a")
-        - "Step 1:", "Step 2:", etc. for logical solution steps
-        - "Calculation:" to show arithmetic
-        - "Result:" or "Final Answer:" for the final result
-        - "Conclusion:" for summary
-        - "Note:" for remarks
-        IMPORTANT: Do NOT use "Concept:" header. Start answers directly.
+          LANGUAGE RULES:
+          - Extract the "question" field as faithfully as possible from the uploaded PDF.
+          - Write the "answer" field in ${selectedLanguage.label}.
+          - ${selectedLanguage.instruction}
 
-        NUMERICAL / MATH ANSWER RULES:
-        - State known values under "Given:" with units, one value per line
-        - State the relevant formula under "Formula:" before computing
-        - Show each substitution step on its own line
-        - Use "=>" for calculation flow (e.g. "= 10 × 9.8 => = 98 N")
-        - Always end with "Final Answer:" with result and units
-        - For multi-part problems, use "Step 1:", "Step 2:" etc.
+          ANSWER STYLE:
+          - Keep each answer within approximately ${boundedWordLimit} words.
+          - ALWAYS write answers POINTWISE — every key point on its own line starting with "- ".
+          - Never write long paragraphs. Break every idea into separate bullet points.
+          - Start directly with the answer. No filler, no "Concept:" block.
+          - Use plain text only. No Markdown tables, LaTeX blocks, or code fences.
+          - Replace fragile math symbols with printable text: "pi", "theta", "degrees", "sqrt(x)", "integral".
 
-        THEORY / DESCRIPTIVE ANSWER RULES:
-        - Write EVERY point as a bullet starting with "- " on its own line
-        - Each bullet should be one complete thought (1-2 sentences max)
-        - Use "Explanation:" header only when extra context is needed
-        - For definitions: first bullet is the definition, following bullets are key characteristics
-        - For comparisons: use separate bullets for each difference/similarity
-        - For processes: use numbered points or "Step 1:", "Step 2:" etc.
-        - Keep it scannable — a reader should understand the answer by skimming bullets
+          FORMATTING RULES:
+          Use these section headers on their own line when applicable:
+          - "Given:" to list known values (one per line, e.g. "Mass (m) = 10 kg")
+          - "Find:" to state what needs to be determined
+          - "Formula:" to state the formula (e.g. "F = m × a")
+          - "Step 1:", "Step 2:", etc. for logical solution steps
+          - "Calculation:" to show arithmetic
+          - "Result:" or "Final Answer:" for the final result
+          - "Conclusion:" for summary
+          - "Note:" for remarks
+          IMPORTANT: Do NOT use "Concept:" header. Start answers directly.
 
-        VISUAL HANDLING:
-        - If a question relies on a visual element, include a [Visual Description] tag in the question text describing only the details needed to solve it.
-        - If an answer needs a simple vector diagram, return a valid standalone SVG string in "diagram".
-        - If a simple image is needed and can be safely represented as a Base64 data URI, return it in "image".
+          NUMERICAL / MATH ANSWER RULES:
+          - State known values under "Given:" with units, one value per line
+          - State the relevant formula under "Formula:" before computing
+          - Show each substitution step on its own line
+          - Use "=>" for calculation flow (e.g. "= 10 × 9.8 => = 98 N")
+          - Always end with "Final Answer:" with result and units
 
-        RESPONSE FORMAT:
-        Return a JSON array. Each item must contain:
-        - "question": extracted question text.
-        - "answer": step-by-step solution in the selected answer language.
-        - "diagram": optional SVG string.
-        - "image": optional Base64 image data URI.
-      `;
+          THEORY / DESCRIPTIVE ANSWER RULES:
+          - Write EVERY point as a bullet starting with "- " on its own line
+          - Each bullet should be one complete thought (1-2 sentences max)
+          - Use "Explanation:" header only when extra context is needed
+
+          VISUAL HANDLING:
+          - If the solution needs a simple vector diagram, return a valid standalone SVG string in "diagram".
+          - If a simple image is needed and can be safely represented as a Base64 data URI, return it in "image".
+
+          RESPONSE FORMAT:
+          Return a JSON object containing:
+          - "question": the question being solved.
+          - "answer": structured step-by-step academic answer.
+          - "diagram": optional SVG string.
+          - "image": optional Base64 image data URI.
+        `;
+
+        responseSchema = {
+          type: Type.OBJECT,
+          properties: {
+            question: { type: Type.STRING, description: "The solved question text." },
+            answer: { type: Type.STRING, description: "The structured answer." },
+            diagram: { type: Type.STRING, description: "Optional SVG string." },
+            image: { type: Type.STRING, description: "Optional Base64 data URI." },
+          },
+          required: ["question", "answer"],
+        };
+      } else {
+        prompt = `
+          You are an expert academic document analyzer.
+          Analyze the provided PDF and identify every distinct question, including questions in scanned pages, images, charts, and diagrams.
+
+          CRITICAL QUESTION EXTRACTION RULE:
+          - You MUST identify and extract EVERY single question present in the document. Do not skip or omit any question.
+          - If the document contains many questions, prioritize extracting all of them and make the answers concise/compact to fit within the token budget.
+
+          LANGUAGE RULES:
+          - Extract the "question" field as faithfully as possible from the uploaded PDF. If the original question is not English, keep it in the source language unless the text is unreadable.
+          - Write the "answer" field in ${selectedLanguage.label}.
+          - ${selectedLanguage.instruction}
+
+          ANSWER STYLE:
+          - Keep each answer within approximately ${boundedWordLimit} words.
+          - ALWAYS write answers POINTWISE — every key point on its own line starting with "- ".
+          - Never write long paragraphs. Break every idea into separate bullet points.
+          - Start directly with the answer. No filler, no "Concept:" block.
+          - Use plain text only. No Markdown tables, LaTeX blocks, or code fences.
+          - Replace fragile math symbols with printable text: "pi", "theta", "degrees", "sqrt(x)", "integral".
+
+          FORMATTING RULES FOR ALL ANSWERS:
+          Use these section headers on their own line when applicable:
+          - "Given:" to list known values (one per line, e.g. "Mass (m) = 10 kg")
+          - "Find:" to state what needs to be determined
+          - "Formula:" to state the formula (e.g. "F = m × a")
+          - "Step 1:", "Step 2:", etc. for logical solution steps
+          - "Calculation:" to show arithmetic
+          - "Result:" or "Final Answer:" for the final result
+          - "Conclusion:" for summary
+          - "Note:" for remarks
+          IMPORTANT: Do NOT use "Concept:" header. Start answers directly.
+
+          NUMERICAL / MATH ANSWER RULES:
+          - State known values under "Given:" with units, one value per line
+          - State the relevant formula under "Formula:" before computing
+          - Show each substitution step on its own line
+          - Use "=>" for calculation flow (e.g. "= 10 × 9.8 => = 98 N")
+          - Always end with "Final Answer:" with result and units
+          - For multi-part problems, use "Step 1:", "Step 2:" etc.
+
+          THEORY / DESCRIPTIVE ANSWER RULES:
+          - Write EVERY point as a bullet starting with "- " on its own line
+          - Each bullet should be one complete thought (1-2 sentences max)
+          - Use "Explanation:" header only when extra context is needed
+          - For definitions: first bullet is the definition, following bullets are key characteristics
+          - For comparisons: use separate bullets for each difference/similarity
+          - For processes: use numbered points or "Step 1:", "Step 2:" etc.
+          - Keep it scannable — a reader should understand the answer by skimming bullets
+
+          VISUAL HANDLING:
+          - If a question relies on a visual element, include a [Visual Description] tag in the question text describing only the details needed to solve it.
+          - If an answer needs a simple vector diagram, return a valid standalone SVG string in "diagram".
+          - If a simple image is needed and can be safely represented as a Base64 data URI, return it in "image".
+
+          RESPONSE FORMAT:
+          Return a JSON array. Each item must contain:
+          - "question": extracted question text.
+          - "answer": step-by-step solution in the selected answer language.
+          - "diagram": optional SVG string.
+          - "image": optional Base64 image data URI.
+        `;
+
+        responseSchema = {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              question: { type: Type.STRING, description: "The extracted question text." },
+              answer: { type: Type.STRING, description: "The structured step-by-step academic answer." },
+              diagram: { type: Type.STRING, description: "Optional SVG string for diagrams." },
+              image: { type: Type.STRING, description: "Optional Base64 data URI for images." },
+            },
+            required: ["question", "answer"],
+          },
+        };
+      }
 
       const geminiPromise = ai.models.generateContent({
         model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
         contents: [
-          {
-            inlineData: {
-              mimeType: "application/pdf",
-              data: pdfBase64,
-            },
-          },
-          {
-            text: prompt,
-          },
+          { inlineData: { mimeType: "application/pdf", data: pdfBase64 } },
+          { text: prompt },
         ],
         config: {
           thinkingConfig: { thinkingBudget: 0 },
           responseMimeType: "application/json",
           maxOutputTokens: 8192,
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                question: {
-                  type: Type.STRING,
-                  description: "The extracted question text.",
-                },
-                answer: {
-                  type: Type.STRING,
-                  description: "The structured step-by-step academic answer in the selected answer language.",
-                },
-                diagram: {
-                  type: Type.STRING,
-                  description: "Optional SVG string for diagrams.",
-                },
-                image: {
-                  type: Type.STRING,
-                  description: "Optional Base64 data URI for images.",
-                },
-              },
-              required: ["question", "answer"],
-            },
-          },
+          responseSchema,
         },
       });
 
@@ -260,25 +431,38 @@ async function startServer() {
         throw new Error("Empty response received from Gemini model.");
       }
 
-      const parsed = trySalvageJSON(response.text);
-      if (!Array.isArray(parsed)) {
-        throw new Error("Invalid response format received from Gemini model.");
-      }
-
-      const cleaned = parsed
-        .filter((item: any) => item && (item.question || item.answer))
-        .map((item: any) => ({
-          question: String(item.question || "").trim(),
-          answer: String(item.answer || "").trim(),
-          diagram: String(item.diagram || "")
+      if (questionToSolve) {
+        const parsed = trySalvageJSONSingle(response.text);
+        const cleaned = {
+          question: String(parsed.question || questionToSolve).trim(),
+          answer: String(parsed.answer || "").trim(),
+          diagram: String(parsed.diagram || "")
             .replace(/```xml/g, "")
             .replace(/```svg/g, "")
             .replace(/```/g, "")
             .trim(),
-          image: String(item.image || "").trim(),
-        }));
-
-      res.json({ result: cleaned });
+          image: String(parsed.image || "").trim(),
+        };
+        res.json({ result: cleaned });
+      } else {
+        const parsed = trySalvageJSON(response.text);
+        if (!Array.isArray(parsed)) {
+          throw new Error("Invalid response format received from Gemini model.");
+        }
+        const cleaned = parsed
+          .filter((item: any) => item && (item.question || item.answer))
+          .map((item: any) => ({
+            question: String(item.question || "").trim(),
+            answer: String(item.answer || "").trim(),
+            diagram: String(item.diagram || "")
+              .replace(/```xml/g, "")
+              .replace(/```svg/g, "")
+              .replace(/```/g, "")
+              .trim(),
+            image: String(item.image || "").trim(),
+          }));
+        res.json({ result: cleaned });
+      }
     } catch (e: any) {
       console.error("Server Solve Error:", e);
       const msg = e.message || "";

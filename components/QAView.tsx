@@ -7,11 +7,12 @@ interface QAViewProps {
   onDownload: () => void;
   onPreview: () => void;
   onReset: () => void;
+  isSolving?: boolean;
 }
 
 type ViewMode = 'plain' | 'markdown' | 'structured';
 
-const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset }) => {
+const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset, isSolving = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('structured');
   const [expandedPairs, setExpandedPairs] = useState<Record<number, boolean>>(() => {
     const initial: Record<number, boolean> = {};
@@ -316,18 +317,30 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
           {/* Top row: Status + Actions */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             
-            <div className="flex items-center space-x-3.5">
+             <div className="flex items-center space-x-3.5">
               <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-[#22C55E]/10 p-2.5 rounded-xl border border-[#22C55E]/20 text-[#22C55E] flex items-center justify-center"
+                className={`p-2.5 rounded-xl border flex items-center justify-center ${
+                  isSolving 
+                    ? 'bg-[#6D5DFC]/10 border-[#6D5DFC]/20 text-[#8B7FFF]' 
+                    : 'bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]'
+                }`}
               >
-                <i className="ri-checkbox-circle-fill text-xl"></i>
+                {isSolving ? (
+                  <i className="ri-loader-2-line text-xl animate-spin"></i>
+                ) : (
+                  <i className="ri-checkbox-circle-fill text-xl"></i>
+                )}
               </motion.div>
               <div className="text-left">
-                <h2 className="text-base font-bold text-white font-display tracking-tight">Answers Prepared</h2>
-                <p className="text-[11px] text-[#8B93A7] font-medium">{qaPairs.length} questions extracted</p>
+                <h2 className="text-base font-bold text-white font-display tracking-tight">
+                  {isSolving ? 'Solving Questions...' : 'Answers Prepared'}
+                </h2>
+                <p className="text-[11px] text-[#8B93A7] font-medium">
+                  {isSolving ? `${qaPairs.length} questions processed so far` : `${qaPairs.length} questions extracted`}
+                </p>
               </div>
             </div>
 
@@ -342,21 +355,31 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
                 Reset
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isSolving}
+                whileHover={isSolving ? {} : { scale: 1.02 }}
+                whileTap={isSolving ? {} : { scale: 0.98 }}
                 onClick={onPreview}
-                className="px-3.5 py-2.5 text-[11px] font-bold text-[#8B7FFF] bg-[#6D5DFC]/10 hover:bg-[#6D5DFC]/20 border border-[#6D5DFC]/20 rounded-xl focus:outline-none flex items-center transition-all cursor-pointer"
-                title="Preview PDF"
+                className={`px-3.5 py-2.5 text-[11px] font-bold border rounded-xl focus:outline-none flex items-center transition-all ${
+                  isSolving 
+                    ? 'text-zinc-650 bg-zinc-900 border-zinc-850 cursor-not-allowed opacity-50' 
+                    : 'text-[#8B7FFF] bg-[#6D5DFC]/10 hover:bg-[#6D5DFC]/20 border-[#6D5DFC]/20 cursor-pointer'
+                }`}
+                title={isSolving ? "Solving in progress..." : "Preview PDF"}
               >
                 <i className="ri-eye-line text-sm mr-1.5"></i>
                 Preview
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isSolving}
+                whileHover={isSolving ? {} : { scale: 1.02 }}
+                whileTap={isSolving ? {} : { scale: 0.98 }}
                 onClick={onDownload}
-                className="px-4 py-2.5 text-[11px] font-bold text-white bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 rounded-xl focus:outline-none shadow-md shadow-[#6D5DFC]/15 flex items-center transition-all cursor-pointer"
-                title="Download PDF"
+                className={`px-4 py-2.5 text-[11px] font-bold rounded-xl focus:outline-none flex items-center transition-all ${
+                  isSolving 
+                    ? 'text-zinc-500 bg-zinc-900 border-zinc-850 cursor-not-allowed opacity-50' 
+                    : 'text-white bg-[#6D5DFC] hover:bg-[#6D5DFC]/90 shadow-md shadow-[#6D5DFC]/15 cursor-pointer'
+                }`}
+                title={isSolving ? "Solving in progress..." : "Download PDF"}
               >
                 <i className="ri-file-download-line text-sm mr-1.5"></i>
                 Download PDF

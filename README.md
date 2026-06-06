@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <i>Built with React 19, TypeScript, Express 5, Google Gemini 2.5 Flash, and jsPDF. Ready for 1-click Netlify Serverless Deployment.</i>
+  <i>Built with React 19, TypeScript, Express 5, Google Gemini 2.5 Flash, and jsPDF. Ready for production deployment on Render.com.</i>
 </p>
 
 ---
@@ -36,7 +36,7 @@
 | Layer | Technologies Used |
 | :--- | :--- |
 | **Frontend** | React 19, TypeScript, Vite 6, Tailwind CSS, Framer Motion |
-| **Backend** | Express 5, Node.js (for local dev) / Netlify Functions (for production) |
+| **Backend** | Express 5, Node.js (for both local development and production on Render) |
 | **Generative AI** | Google Gemini 2.5 Flash (`@google/genai`) |
 | **Document Generation** | jsPDF (native rendering library for lightweight vector documents) |
 
@@ -89,40 +89,15 @@ DocuSolver-ai/
 ├── index.css                 # Global Tailwind/Vanilla styles and custom scrollbars
 ├── components/
 │   └── QAView.tsx            # Interactive solution viewer (tabs for structured cards, plain text, and raw code)
-├── services/
-│   └── pdfService.ts         # High-fidelity programmatic PDF builder using jsPDF
-├── netlify/
-│   └── functions/            # Serverless functions running on Netlify's edge
-│       ├── solve.ts          # Serverless endpoint for PDF analysis and Gemini API calls
-│       └── health.ts         # Serverless check endpoint to verify backend status
-└── netlify.toml              # Netlify build redirection rules and function routing
+└── services/
+    └── pdfService.ts         # High-fidelity programmatic PDF builder using jsPDF
 ```
 
----
 
-## 🌐 Production Deployment (Netlify)
-
-This repository is pre-configured to build and deploy as a Netlify serverless application out-of-the-box.
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Subha12125/DocuSolver-ai)
-
-### Manual Netlify Setup
-
-1.  Commit and push your repository to your GitHub account.
-2.  Login to [Netlify Console](https://app.netlify.com/).
-3.  Click **Add new site** ➔ **Import from Git**.
-4.  Authorize and choose the **DocuSolver-ai** repository.
-5.  Netlify will automatically load parameters from [netlify.toml](file:///c:/Users/subha/Downloads/docusolver-ai-2.0/netlify.toml):
-    *   **Build command:** `npm run build`
-    *   **Publish directory:** `dist`
-    *   **Functions directory:** `netlify/functions`
-6.  Click **Deploy site**. No environment variables are required since users supply their own keys in the frontend.
-
----
 
 ## 🌐 Production Deployment (Render.com)
 
-If you are uploading large PDFs that take longer than 10 seconds to analyze, serverless environments like Netlify will time out. Instead, deploy the application to **Render.com**, which runs the persistent Node/Express server and supports the full **90-second timeout** window.
+If you are uploading large PDFs, serverless environments (like Netlify or Vercel Hobby) will time out. Instead, deploy the application to **Render.com**, which runs the persistent Node/Express server and supports the full **90-second timeout** window.
 
 ### Step-by-Step Render Deployment
 

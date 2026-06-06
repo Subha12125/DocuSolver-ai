@@ -75,24 +75,167 @@ async function extractErrorMessage(response: Response): Promise<string> {
   }
 }
 
+/**
+ * Extracts all questions from the PDF.
+ */
+export const extractQuestions = async (
+  base64Data: string,
+  apiKey: string
+): Promise<string[]> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for extractQuestions after ${delay}ms...`);
+      await sleep(delay);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch("/api/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: base64Data, apiKey }),
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        lastError = new Error("The request to extract questions timed out. Please try a smaller PDF.");
+        break;
+      }
+      lastError = new Error(`Connection error: ${err.message || 'Could not reach the server.'}`);
+      continue;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errorMsg = await extractErrorMessage(response);
+      lastError = new Error(errorMsg);
+      if (isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+        continue;
+      }
+      break;
+    }
+
+    let data: any;
+    try {
+      data = await response.json();
+    } catch (err: any) {
+      lastError = new Error(`Failed to parse extract response: ${err.message}`);
+      break;
+    }
+
+    if (data && data.questions && Array.isArray(data.questions)) {
+      return data.questions;
+    }
+
+    lastError = new Error("Invalid response format received from the extraction server.");
+    break;
+  }
+
+  throw lastError || new Error("Failed to extract questions. Please try again.");
+};
+
+/**
+ * Solves a single question using the PDF context.
+ */
+export const solveSingleQuestion = async (
+  base64Data: string,
+  apiKey: string,
+  question: string,
+  wordLimit: number,
+  language: string
+): Promise<QAPair> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for solveSingleQuestion after ${delay}ms...`);
+      await sleep(delay);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch("/api/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdfBase64: base64Data,
+          apiKey,
+          wordLimit,
+          language,
+          questionToSolve: question,
+        }),
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        lastError = new Error("Solving request timed out. Retrying may help.");
+        break;
+      }
+      lastError = new Error(`Connection error: ${err.message || 'Could not reach the server.'}`);
+      continue;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errorMsg = await extractErrorMessage(response);
+      lastError = new Error(errorMsg);
+      if (isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+        continue;
+      }
+      break;
+    }
+
+    let data: any;
+    try {
+      data = await response.json();
+    } catch (err: any) {
+      lastError = new Error(`Failed to parse solver response: ${err.message}`);
+      break;
+    }
+
+    if (data && data.result) {
+      return data.result;
+    }
+
+    lastError = new Error("Invalid response format received from the solver server.");
+    break;
+  }
+
+  throw lastError || new Error("Failed to solve question. Please try again.");
+};
+
+/**
+ * Legacy whole-document generation function.
+ */
 export const generateAnswers = async (
   base64Data: string,
   apiKey: string,
   wordLimit: number,
   language: string
 ): Promise<QAPair[]> => {
-
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    // Wait before retrying (exponential backoff)
     if (attempt > 0) {
       const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
       console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms...`);
       await sleep(delay);
     }
 
-    // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -106,39 +249,29 @@ export const generateAnswers = async (
       });
     } catch (err: any) {
       clearTimeout(timeoutId);
-
-      // Abort = timeout
       if (err.name === 'AbortError') {
         lastError = new Error(
           "The request timed out after 2 minutes. The document may be too large or complex. Please try a shorter PDF."
         );
-        // Timeout is not retryable — break immediately
         break;
       }
-
-      // Network error — retryable
       lastError = new Error(
-        `Network connection error: ${err.message || 'Could not reach the server. Check your internet connection.'}`
+        `Network connection error: ${err.message || 'Could not reach the server.'}`
       );
-      continue; // retry
+      continue;
     } finally {
       clearTimeout(timeoutId);
     }
 
-    // Handle non-OK responses
     if (!response.ok) {
       const errorMsg = await extractErrorMessage(response);
       lastError = new Error(errorMsg);
-
-      // Only retry on transient server errors
       if (isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
-        continue; // retry
+        continue;
       }
-      // Non-retryable error (400, 401, 403, 413, 422) — break immediately
       break;
     }
 
-    // Verify response is JSON
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) {
       try {
@@ -152,26 +285,22 @@ export const generateAnswers = async (
       break;
     }
 
-    // Parse JSON response
     let data: any;
     try {
       data = await response.json();
     } catch (err: any) {
       lastError = new Error(`Failed to parse server response: ${err.message || 'Invalid JSON format'}`);
-      // JSON parse errors are not retryable
       break;
     }
 
-    // Validate response shape
     if (data && data.result && Array.isArray(data.result)) {
       if (data.result.length === 0) {
         lastError = new Error("No questions were detected in the document. Please ensure the PDF contains readable questions.");
         break;
       }
-      return data.result; // SUCCESS
+      return data.result;
     }
 
-    // Server returned JSON but wrong shape
     if (data && data.error) {
       lastError = new Error(data.error);
       break;
@@ -181,6 +310,5 @@ export const generateAnswers = async (
     break;
   }
 
-  // All retries exhausted or non-retryable error encountered
   throw lastError || new Error("Failed to generate answers. Please try again.");
 };
