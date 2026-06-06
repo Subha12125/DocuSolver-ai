@@ -47,7 +47,7 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-[#8B7FFF]/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         {/* Header Text */}
-        <div className="text-center mb-12 space-y-3 relative z-10">
+        <div className="text-center mb-10 space-y-3 relative z-10">
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
@@ -65,8 +65,26 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
           </p>
         </div>
 
+        {/* Progress Bar (Solving Progress) - Repositioned below header */}
+        {progress !== undefined && (
+          <div className="mb-10 space-y-2.5 max-w-md mx-auto relative z-10">
+            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#8B93A7] px-1">
+              <span>Solving Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2.5 w-full bg-[#1D2230] rounded-full overflow-hidden border border-zinc-800/40 relative">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-[#6D5DFC] to-[#8B7FFF] rounded-full"
+                initial={{ width: "0%" }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Stepper Visual */}
-        <div className="relative flex justify-between items-center mb-6 px-6">
+        <div className="relative flex justify-between items-start mb-2 px-6">
           {/* Connecting Line Background */}
           <div className="absolute left-6 right-6 top-[22px] h-[3px] bg-[#1D2230] rounded-full -z-10"></div>
           
@@ -85,7 +103,7 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
             const isCompleted = index < activeStep;
 
             return (
-              <div key={index} className="flex flex-col items-center relative group">
+              <div key={index} className="flex flex-col items-center relative group w-1/3 text-center">
                 <motion.div 
                   initial={false}
                   animate={
@@ -107,16 +125,16 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
                   )}
                 </motion.div>
                 
-                <div className="absolute top-14 flex flex-col items-center">
+                <div className="mt-3 flex flex-col items-center">
                   <span 
                     className={`
-                      text-xs font-bold whitespace-nowrap transition-colors duration-300 tracking-tight
+                      text-xs font-bold transition-colors duration-300 tracking-tight
                       ${isActive || isCompleted ? 'text-white font-display' : 'text-[#8B93A7]'}
                     `}
                   >
                     {step.label}
                   </span>
-                  <span className="text-[10px] text-[#8B93A7] hidden md:block whitespace-nowrap mt-0.5 font-sans">
+                  <span className="text-[10px] text-[#8B93A7] hidden md:block mt-0.5 font-sans max-w-[120px] leading-snug">
                     {step.desc}
                   </span>
                 </div>
@@ -124,26 +142,6 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
             );
           })}
         </div>
-
-        {progress !== undefined && (
-          <div className="mt-10 space-y-2.5 max-w-md mx-auto">
-            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#8B93A7] px-1">
-              <span>Solving Progress</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="h-2.5 w-full bg-[#1D2230] rounded-full overflow-hidden border border-zinc-800/40 relative">
-              <motion.div 
-                className="h-full bg-gradient-to-r from-[#6D5DFC] to-[#8B7FFF] rounded-full"
-                initial={{ width: "0%" }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
-            </div>
-          </div>
-        )}
-        
-        {/* Padding for bottom aligned stepper details */}
-        <div className="h-10"></div>
       </motion.div>
     </div>
   );

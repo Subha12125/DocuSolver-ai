@@ -8,11 +8,12 @@ interface QAViewProps {
   onPreview: () => void;
   onReset: () => void;
   isSolving?: boolean;
+  progress?: number;
 }
 
 type ViewMode = 'plain' | 'markdown' | 'structured';
 
-const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset, isSolving = false }) => {
+const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset, isSolving = false, progress }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('structured');
   const [expandedPairs, setExpandedPairs] = useState<Record<number, boolean>>(() => {
     const initial: Record<number, boolean> = {};
@@ -312,7 +313,7 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
       <div className="bg-[#161A23] rounded-2xl border border-zinc-800 shadow-xl overflow-hidden">
         
         {/* Sticky Header Toolbar */}
-        <div className="sticky top-0 z-30 bg-[#161A23]/95 backdrop-blur-md px-6 sm:px-8 py-5 border-b border-zinc-800/80">
+        <div className="sticky top-0 z-30 bg-[#161A23]/95 backdrop-blur-md px-6 sm:px-8 py-5 border-b border-zinc-800/80 relative">
           
           {/* Top row: Status + Actions */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -427,6 +428,18 @@ const QAView: React.FC<QAViewProps> = ({ qaPairs, onDownload, onPreview, onReset
               <span>{allExpanded ? 'Collapse All' : 'Expand All'}</span>
             </button>
           </div>
+
+          {/* Sticky Progress Bar at the bottom of header */}
+          {isSolving && progress !== undefined && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1D2230] overflow-hidden">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-[#6D5DFC] to-[#8B7FFF] rounded-r-full"
+                initial={{ width: "0%" }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Questions Body */}

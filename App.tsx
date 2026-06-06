@@ -877,6 +877,7 @@ const App: React.FC = () => {
                     onPreview={handlePreview}
                     onReset={handleReset} 
                     isSolving={true}
+                    progress={processingState.progress}
                   />
                 </div>
               </div>
