@@ -1,6 +1,6 @@
 import { QAPair } from '../types';
 
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 2000;
 const REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
 
@@ -86,8 +86,15 @@ export const extractQuestions = async (
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
-      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for extractQuestions after ${delay}ms...`);
+      const isRateLimit = lastError && (
+        lastError.message.includes("quota") || 
+        lastError.message.includes("429") || 
+        lastError.message.includes("rate limit") ||
+        lastError.message.includes("RESOURCE_EXHAUSTED")
+      );
+      const baseDelay = isRateLimit ? 6000 : BASE_DELAY_MS;
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for extractQuestions after ${delay}ms (RateLimit: ${!!isRateLimit})...`);
       await sleep(delay);
     }
 
@@ -156,8 +163,15 @@ export const solveSingleQuestion = async (
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
-      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for solveSingleQuestion after ${delay}ms...`);
+      const isRateLimit = lastError && (
+        lastError.message.includes("quota") || 
+        lastError.message.includes("429") || 
+        lastError.message.includes("rate limit") ||
+        lastError.message.includes("RESOURCE_EXHAUSTED")
+      );
+      const baseDelay = isRateLimit ? 6000 : BASE_DELAY_MS;
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} for solveSingleQuestion after ${delay}ms (RateLimit: ${!!isRateLimit})...`);
       await sleep(delay);
     }
 
@@ -231,8 +245,15 @@ export const generateAnswers = async (
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
-      const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms...`);
+      const isRateLimit = lastError && (
+        lastError.message.includes("quota") || 
+        lastError.message.includes("429") || 
+        lastError.message.includes("rate limit") ||
+        lastError.message.includes("RESOURCE_EXHAUSTED")
+      );
+      const baseDelay = isRateLimit ? 6000 : BASE_DELAY_MS;
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      console.log(`[DocuSolver] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms (RateLimit: ${!!isRateLimit})...`);
       await sleep(delay);
     }
 

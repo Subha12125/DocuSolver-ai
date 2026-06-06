@@ -221,6 +221,8 @@ async function startServer() {
         res.status(422).json({ error: msg });
       } else if (msg.includes("API Key") || msg.includes("403") || msg.includes("401")) {
         res.status(401).json({ error: msg });
+      } else if (msg.includes("quota") || msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("rate limit")) {
+        res.status(429).json({ error: msg });
       } else {
         res.status(500).json({ error: msg || "An error occurred during question extraction." });
       }
@@ -472,6 +474,8 @@ async function startServer() {
         res.status(422).json({ error: msg });
       } else if (msg.includes("API Key") || msg.includes("403") || msg.includes("401")) {
         res.status(401).json({ error: msg });
+      } else if (msg.includes("quota") || msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("rate limit")) {
+        res.status(429).json({ error: msg });
       } else {
         res.status(500).json({ error: msg || "An error occurred during content generation." });
       }
