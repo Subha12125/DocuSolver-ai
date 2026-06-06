@@ -5,9 +5,10 @@ import { ProcessingStatus } from '../types';
 interface ProcessingIndicatorProps {
   status: ProcessingStatus;
   message?: string;
+  progress?: number;
 }
 
-const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, message }) => {
+const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, message, progress }) => {
   const [activeStep, setActiveStep] = useState(0);
 
   // Map high-level status to visual steps
@@ -123,6 +124,23 @@ const ProcessingIndicator: React.FC<ProcessingIndicatorProps> = ({ status, messa
             );
           })}
         </div>
+
+        {progress !== undefined && (
+          <div className="mt-10 space-y-2.5 max-w-md mx-auto">
+            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#8B93A7] px-1">
+              <span>Solving Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2.5 w-full bg-[#1D2230] rounded-full overflow-hidden border border-zinc-800/40 relative">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-[#6D5DFC] to-[#8B7FFF] rounded-full"
+                initial={{ width: "0%" }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        )}
         
         {/* Padding for bottom aligned stepper details */}
         <div className="h-10"></div>

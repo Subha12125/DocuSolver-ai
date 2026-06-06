@@ -128,10 +128,12 @@ const App: React.FC = () => {
 
       for (let i = 0; i < totalQuestions; i++) {
         const questionText = questionsList[i];
+        const progressPercent = (i / totalQuestions) * 100;
         
         setProcessingState({
           status: ProcessingStatus.ANALYZING,
-          message: `Solving question ${i + 1} of ${totalQuestions}: "${questionText.length > 55 ? questionText.substring(0, 55) + '...' : questionText}"`
+          message: `Solving question ${i + 1} of ${totalQuestions}: "${questionText.length > 55 ? questionText.substring(0, 55) + '...' : questionText}"`,
+          progress: progressPercent
         });
 
         try {
@@ -858,6 +860,7 @@ const App: React.FC = () => {
             <ProcessingIndicator 
               status={processingState.status} 
               message={processingState.message} 
+              progress={processingState.progress}
             />
             {qaPairs.length > 0 && (
               <div className="space-y-6">

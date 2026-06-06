@@ -16,4 +16,5 @@ export enum ProcessingStatus {
 export interface ProcessingState {
   status: ProcessingStatus;
   message?: string;
+  progress?: number;
 }
